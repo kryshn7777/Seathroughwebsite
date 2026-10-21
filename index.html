@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SeaThrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="SeaThrough is an Android app blocker with no forced lockout. Set a limit for an app; when time is up, the sea floods in over it.">
+<!-- SeaThrough website. GENERATED from web/site.src.html by node web/build.mjs (edit the source, not this file): the fish, clock, feed pictures and icons are copied from store/listing (sea.js, screens.js, ui.js). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Geist:wght@300..900&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one dive. A pinned sunlit opener where a phone floods as you scroll, then the page sinks from sunlit teal to the deep. */
+  :root {
+    color-scheme: light;
+    --sky: #EAF6FA; --sky-2: #D2ECF4; --ink: #0B1419; --ink-2: #3D5560; --teal: #0B7285;
+    --glass: #7FE0E0; --deep-text: #F1F8FA; --deep-text-2: #B7D5DF; --coral: #FF8A6B; --gold: #F5C542;
+    --clay-hi: #B4DEFF; --clay: #56A5F7; --clay-lo: #2D70DA; --clay-ink: #0D3F78;
+    --cream: #F6FAFF; --cream-lo: #D3E5F7; --shadow: 16 62 146;
+    --sans: "Geist", "Segoe UI", system-ui, sans-serif;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --mono: "Geist Mono", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--sky); }
+  body { margin: 0; min-height: 100%; background: linear-gradient(180deg, var(--sky), var(--sky-2) 100vh) no-repeat var(--sky); color: var(--ink);
+    font: 400 17px/1.55 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+  .lenis [data-lenis-prevent] { overscroll-behavior: contain; }
+  a { color: inherit; }
+  #sea, #life { position: fixed; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+  #sea { z-index: 0; } #life { z-index: 1; }
+  #root { position: relative; z-index: 2; }
+  .nogl body { background: linear-gradient(180deg, var(--sky) 0, var(--sky-2) 300vh, #2C93B0 340vh, #0B3C5A 50%, #02101C 100%); }
+  .wrap { width: 100%; max-width: 1200px; margin-inline: auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+  h1, h2, h3, p { margin: 0; }
+  h1, h2 { font-weight: 800; letter-spacing: -0.038em; line-height: 0.98; text-wrap: balance; }
+  .h1 { font-size: clamp(44px, 6.3vw, 92px); }
+  .h1 > span { display: block; }
+  .h2 { font-size: clamp(38px, 5vw, 70px); }
+  .h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+  .l2 { color: var(--teal); }
+  .lead { font-size: clamp(17px, 1.45vw, 20px); line-height: 1.5; max-width: 33em; color: var(--ink-2); text-wrap: pretty; }
+  .label { font: 600 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+  .num { font-family: var(--serif); font-weight: 450; font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 60; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .deep { color: var(--deep-text); }
+  .deep .l2 { color: var(--glass); }
+  .deep .lead { color: var(--deep-text-2); }
+  .deep .h2 { text-shadow: 0 2px 30px rgb(0 28 48 / 0.35); }
+
+  /* ---- clay ---- */
+  .clay { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 60px; padding: 0 30px;
+    border: 0; border-radius: 999px; cursor: pointer; text-decoration: none; white-space: nowrap; user-select: none; -webkit-tap-highlight-color: transparent;
+    font: 700 17px/1 var(--sans); letter-spacing: -0.01em; color: #fff; text-shadow: 0 1px 1px rgb(10 40 110 / 0.35);
+    background: radial-gradient(130% 150% at 30% 12%, var(--clay-hi) 0%, var(--clay) 42%, var(--clay-lo) 100%);
+    box-shadow: inset 0 3px 2px rgb(255 255 255 / 0.6), inset 0 -9px 16px rgb(14 50 140 / 0.45), inset 0 12px 20px rgb(255 255 255 / 0.2),
+      0 20px 32px -12px rgb(var(--shadow) / 0.7), 0 6px 12px -3px rgb(var(--shadow) / 0.35);
+    transition: box-shadow 0.2s ease; }
+  .clay::before { content: ""; position: absolute; left: 13%; top: 6px; width: 40%; height: 36%; border-radius: 999px; pointer-events: none;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0)); }
+  .clay:active { box-shadow: inset 0 2px 1px rgb(255 255 255 / 0.45), inset 0 -3px 8px rgb(14 50 140 / 0.5), inset 0 8px 16px rgb(10 40 120 / 0.38),
+      0 8px 16px -8px rgb(var(--shadow) / 0.7); }
+  .clay-light { color: var(--clay-ink); text-shadow: none;
+    background: radial-gradient(130% 150% at 30% 12%, #fff 0%, #E6F2FF 48%, #C6DDF6 100%);
+    box-shadow: inset 0 3px 2px #fff, inset 0 -9px 16px rgb(60 120 200 / 0.28), 0 20px 32px -14px rgb(var(--shadow) / 0.5), 0 5px 10px rgb(var(--shadow) / 0.14); }
+  .clay-light:active { box-shadow: inset 0 2px 1px #fff, inset 0 -3px 8px rgb(60 120 200 / 0.3), inset 0 8px 16px rgb(60 120 200 / 0.22), 0 8px 14px -8px rgb(var(--shadow) / 0.5); }
+  .clay-sm { height: 46px; padding: 0 20px; font-size: 15px; }
+  .clay:focus-visible { outline: 3px solid var(--teal); outline-offset: 4px; }
+  .clay svg { flex: none; }
+  .pop { position: absolute; border-radius: 50%; pointer-events: none; z-index: 2;
+    background: radial-gradient(circle at 34% 30%, #fff 0 16%, rgb(255 255 255 / 0.3) 38%, rgb(255 255 255 / 0.06) 70%); box-shadow: inset 0 0 0 1.2px rgb(255 255 255 / 0.85); }
+  .card { position: relative; border-radius: 30px; padding: 26px; color: var(--ink);
+    background: linear-gradient(165deg, #F8FBFF 0%, #E3EEFA 58%, #D2E4F7 100%);
+    box-shadow: inset 0 2px 1px #fff, inset 0 -12px 26px rgb(var(--shadow) / 0.13), inset 8px 0 18px rgb(255 255 255 / 0.45),
+      0 40px 70px -36px rgb(2 20 40 / 0.8), 0 10px 24px -12px rgb(2 20 40 / 0.35); }
+
+  /* ---- nav ---- */
+  .nav { position: fixed; z-index: 20; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 14px); pointer-events: none; }
+  .bar { pointer-events: auto; display: flex; align-items: center; gap: 22px; height: 64px; padding: 0 9px 0 14px; border-radius: 999px;
+    background: linear-gradient(180deg, #FCFDFF, #E5F0FA); color: var(--ink);
+    box-shadow: inset 0 2px 1px #fff, inset 0 -7px 14px rgb(var(--shadow) / 0.12), 0 18px 40px -18px rgb(var(--shadow) / 0.6); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 520 23px/1 var(--serif); font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 24; letter-spacing: -0.02em; }
+  .links { display: flex; gap: 22px; margin-left: 10px; font-weight: 500; font-size: 15px; }
+  .links a { text-decoration: none; color: var(--ink-2); }
+  .links a:hover { color: var(--teal); }
+  .links a:focus-visible, .brand:focus-visible, .foot a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; border-radius: 6px; }
+  .grow { flex: 1; }
+
+  /* ---- the pinned opener ---- */
+  .story { position: relative; height: 100vh; height: 100svh; overflow: hidden; }
+  .story-grid { height: 100%; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr); align-items: center; gap: 48px; padding-block: 96px 30px; }
+  .copy { position: relative; min-width: 0; }
+  .hero { display: grid; gap: 26px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .fine { font: 500 14px/1.3 var(--sans); color: var(--ink-2); }
+  .hint { display: flex; align-items: center; gap: 12px; margin-top: 8px; font: 600 12px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+  .hint i { width: 1px; height: 34px; background: linear-gradient(var(--teal), transparent); animation: hint 1.8s ease-in-out infinite; transform-origin: top; }
+  @keyframes hint { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+  .step { display: grid; gap: 20px; }
+  .meter { margin-top: 34px; max-width: 420px; display: grid; gap: 10px; }
+  .meter-row { display: flex; justify-content: space-between; gap: 12px; font: 500 14px/1.2 var(--sans); color: var(--ink-2); }
+  .meter-row .t { font: 600 15px/1.2 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 14px; border-radius: 99px; background: linear-gradient(180deg, #D2E4EE, #E8F2F7);
+    box-shadow: inset 0 3px 5px rgb(var(--shadow) / 0.18), 0 1px 0 #fff; }
+  .track > i { position: absolute; left: 3px; top: 3px; bottom: 3px; border-radius: 99px; background: linear-gradient(180deg, #4FC0CF, var(--teal)); transition: background 0.3s; box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.5); }
+  .track > i.hot { background: linear-gradient(180deg, #FFB39E, #F0694A); }
+  .track > b { position: absolute; top: -5px; bottom: -5px; width: 2px; border-radius: 2px; background: var(--ink); opacity: 0.55; }
+
+  .phone { --ph: min(740px, calc(100svh - 140px)); justify-self: center; position: relative; height: var(--ph); width: calc(var(--ph) * 404 / 852);
+    padding: calc(var(--ph) * 0.0118); border-radius: calc(var(--ph) * 0.068);
+    background: linear-gradient(150deg, #34424D, #0C1216 58%, #1A242B);
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.28), inset 0 -2px 3px rgb(0 0 0 / 0.5), 0 60px 90px -44px rgb(6 40 70 / 0.75), 0 22px 40px -22px rgb(6 40 70 / 0.5); }
+  .screen { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: calc(var(--ph) * 0.057); background: #fff; isolation: isolate; }
+  .scaled { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; }
+  .over { z-index: 3; pointer-events: none; }
+  .pane { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .pane canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* inside the phone: 384 x 832 dp */
+  .feed { position: absolute; left: 0; top: 0; width: 384px; padding-top: 32px; background: #fff; color: #15181B; font-family: var(--sans); }
+  .feed-head { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font: 700 23px/1 var(--sans); letter-spacing: -0.4px; }
+  .feed-head span, .post-act { display: flex; gap: 18px; align-items: center; }
+  .stories { display: flex; gap: 12px; padding: 6px 14px 12px; border-bottom: 1px solid #ECEEF0; }
+  .st { width: 58px; display: flex; flex-direction: column; align-items: center; gap: 5px; font: 400 11px/14px var(--sans); color: #3A3F44; }
+  .av { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--c); color: #fff; font: 600 19px/1 var(--sans); font-style: normal; }
+  .av.ringed { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #E2366B; }
+  .post { padding-bottom: 18px; }
+  .post-head { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 12px; }
+  .post-head .av { width: 32px; height: 32px; font-size: 13px; }
+  .post-head b { display: block; font: 600 14px/18px var(--sans); }
+  .post-head span { font: 400 12px/14px var(--sans); color: #6B7075; }
+  .post-act { height: 46px; padding: 0 14px; }
+  .post-cap { padding: 0 14px; font: 400 14px/20px var(--sans); }
+  .post-cap b { font-weight: 600; }
+  .home { position: absolute; inset: 0; }
+  .homescr { position: absolute; inset: 0; color: #fff; font-family: var(--sans); background: radial-gradient(120% 80% at 20% 8%, #6DB4D2 0, #1F6286 46%, #0B2A3E 100%); }
+  .h-clock { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font: 250 86px/1 var(--sans); letter-spacing: -3px; }
+  .h-grid { position: absolute; left: 26px; right: 26px; bottom: 150px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; font: 500 12.5px/16px var(--sans); }
+  .h-grid div { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .sbar { position: absolute; left: 0; right: 0; top: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 2px 24px 0; font: 600 14px/1 var(--sans); color: #15181B; transition: color 0.4s; }
+  .sbar.light { color: #fff; }
+  .sbar span { display: flex; gap: 5px; align-items: center; }
+  .hu { position: absolute; left: 10px; right: 10px; top: 40px; border-radius: 24px; padding: 14px 16px 16px; background: #FAFCFD; color: #15181B;
+    box-shadow: 0 14px 34px -12px rgb(0 0 0 / 0.4), 0 0 0 1px rgb(0 0 0 / 0.05); }
+  .hu-top { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1 var(--sans); color: #3A4248; }
+  .hu-title { margin-top: 9px; font: 600 18px/22px var(--sans); font-variant-numeric: tabular-nums; }
+  .talk { position: absolute; left: 48px; top: 540px; width: 236px; padding: 10px 14px; border-radius: 18px; background: #fff; color: #15181B;
+    font: 500 14px/19px var(--sans); box-shadow: 0 10px 24px -10px rgb(0 40 60 / 0.45); }
+  .talk::after { content: ""; position: absolute; left: 34px; bottom: -9px; border: 10px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .ring-float { position: absolute; left: 150px; top: 390px; filter: drop-shadow(0 6px 8px rgb(0 30 50 / 0.35)); animation: drift 11s ease-in-out infinite alternate; }
+  @keyframes drift { 0% { transform: translate(-70px, 24px) rotate(-12deg); } 50% { transform: translate(30px, -28px) rotate(6deg); } 100% { transform: translate(96px, 36px) rotate(22deg); } }
+  .ring { display: block; width: 72px; height: 72px; border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, rgb(255 255 255 / 0.55), transparent 42%),
+      conic-gradient(#E5383B 0 45deg, #FBF7F2 0 90deg, #E5383B 0 135deg, #FBF7F2 0 180deg, #E5383B 0 225deg, #FBF7F2 0 270deg, #E5383B 0 315deg, #FBF7F2 0);
+    -webkit-mask: radial-gradient(circle, transparent 0 17px, #000 18px); mask: radial-gradient(circle, transparent 0 17px, #000 18px); }
+
+  /* ---- deep sections ---- */
+  .sec { position: relative; padding-block: clamp(96px, 15vh, 170px); }
+  .head { display: grid; gap: 22px; max-width: 760px; margin-bottom: clamp(40px, 6vw, 72px); }
+  .vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .vs-card { display: grid; gap: 18px; align-content: start; }
+  .shot { position: relative; aspect-ratio: 360 / 441; max-width: 100%; border-radius: 22px; overflow: hidden; background: #fff; isolation: isolate;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06); }
+  .shot svg { margin: 0 !important; border-radius: 0 !important; }
+  .shot.locked > .scaled { filter: grayscale(1) brightness(0.55) blur(1.5px); }
+  .wall { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: #fff;
+    background: rgb(28 32 36 / 0.62); }
+  .wall b { font: 700 22px/1.2 var(--sans); }
+  .wall span { font: 400 15px/1.4 var(--sans); color: #D5DADD; }
+  .ticks { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; font-size: 16px; }
+  .ticks li { display: flex; gap: 10px; align-items: baseline; }
+  .ticks li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); transform: translateY(-1px); }
+  .ticks.no li::before { background: #9AA4AA; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .feat { display: grid; gap: 14px; align-content: start; }
+  .feat p { color: var(--ink-2); font-size: 16px; }
+  .viz { position: relative; height: 168px; border-radius: 20px; overflow: hidden; display: grid; place-items: center;
+    background: radial-gradient(120% 90% at 30% 0%, #3AA6C2 0%, #13658A 50%, #0A3550 100%); box-shadow: inset 0 3px 12px rgb(0 20 40 / 0.35); }
+  .tag { justify-self: start; padding: 6px 10px; border-radius: 99px; background: #D6E7F7; color: var(--clay-ink); font: 600 11px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .tag.pro { background: linear-gradient(180deg, #6DB2FA, #2D70DA); color: #fff; }
+  .bubble { position: absolute; left: 18px; top: 16px; max-width: 210px; padding: 9px 12px; border-radius: 16px; background: #fff; color: #15181B; font: 500 13px/17px var(--sans); }
+  .bubble::after { content: ""; position: absolute; left: 30px; bottom: -8px; border: 9px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .medal { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 28%, #FFF3C2 0, #F5C542 38%, #B9861A 100%); box-shadow: inset 0 2px 2px rgb(255 255 255 / 0.7), inset 0 -6px 10px rgb(120 70 0 / 0.35), 0 10px 22px -8px rgb(0 0 0 / 0.5); }
+  .gate { display: grid; gap: 10px; justify-items: center; color: #fff; text-align: center; }
+  .gate small { font: 500 12px/1 var(--sans); color: #CDE7F0; }
+  .gate b { font: 450 40px/1 var(--serif); font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 60; }
+  .gate div { display: flex; gap: 8px; }
+  .gate span { padding: 8px 12px; border-radius: 99px; font: 600 12px/1 var(--sans); background: rgb(255 255 255 / 0.16); }
+  .gate span + span { background: #fff; color: #0B1419; }
+  .lmi { display: grid; gap: 10px; justify-items: center; color: #fff; }
+  .lmi span { padding: 11px 18px; border-radius: 99px; background: #fff; color: #0B1419; font: 700 14px/1 var(--sans); }
+  .lmi small { font: 600 13px/1 var(--mono); color: #CDE7F0; letter-spacing: 0.06em; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 4vw, 56px); }
+  .stat { display: grid; gap: 14px; align-content: start; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / 0.22); }
+  .stat .num { font-size: clamp(46px, 5.4vw, 76px); line-height: 1; color: #fff; }
+  .stat .num.word { font-size: clamp(34px, 3.6vw, 50px); }
+  .stat p { color: var(--deep-text-2); max-width: 22em; }
+  .stat small { font: 500 12px/1.4 var(--mono); color: #86AFC0; letter-spacing: 0.04em; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .facts .card p { color: var(--ink-2); font-size: 16px; margin-top: 8px; }
+  .plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+  .plan { display: grid; gap: 18px; padding: 32px; }
+  .plan .price { display: flex; align-items: baseline; gap: 10px; }
+  .plan .price .num { font-size: 64px; line-height: 1; }
+  .plan .ticks { font-size: 16px; }
+  .plan.pro { color: #fff; background: radial-gradient(140% 120% at 20% 0%, #7CBDFB 0%, #3A86E6 45%, #1F55B5 100%);
+    box-shadow: inset 0 3px 2px rgb(255 255 255 / 0.5), inset 0 -16px 30px rgb(10 30 100 / 0.35), 0 40px 70px -36px rgb(2 20 40 / 0.85); }
+  .plan.pro .ticks li::before { background: #fff; }
+  .plan.pro .sub { color: #DCEBFF; }
+  .plan .sub { color: var(--ink-2); font-size: 15px; }
+  .center { display: grid; justify-items: center; text-align: center; gap: 28px; }
+  .final { padding-block: clamp(140px, 24vh, 260px) clamp(90px, 14vh, 150px); }
+  .foot { padding-block: 40px 56px; border-top: 1px solid rgb(255 255 255 / 0.12); display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; color: #8DB1C0; font-size: 14px; }
+  .foot nav { display: flex; gap: 22px; flex-wrap: wrap; }
+  .gauge { position: fixed; z-index: 5; left: max(18px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); display: grid; gap: 8px;
+    color: var(--deep-text); opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+  .gauge b { font: 600 15px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .gauge .label { color: #8DB1C0; font-size: 10px; }
+
+  @media (max-width: 1000px) { .grid3, .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .links { display: none; } }
+  @media (max-width: 820px) {
+    .story-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 14px; padding-block: 92px 14px; }
+    .copy { min-height: 228px; }
+    .phone { --ph: calc(100svh - 360px); align-self: center; }
+    .hero { gap: 16px; } .hint, .hide-sm { display: none; }
+    .step { gap: 12px; } .meter { margin-top: 14px; }
+    .h2 { font-size: clamp(34px, 9vw, 52px); }
+    .vs, .plans, .stats { grid-template-columns: minmax(0, 1fr); }
+    .gauge { display: none; }
+  }
+  @media (max-width: 620px) { .grid3, .facts { grid-template-columns: minmax(0, 1fr); } .clay { height: 54px; padding: 0 24px; font-size: 16px; } .bar { gap: 12px; } .brand { font-size: 20px; } }
+  @media (prefers-reduced-motion: reduce) { .hint i, .ring-float { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="sea" aria-hidden="true"></canvas>
+<canvas id="life" aria-hidden="true"></canvas>
+<div id="root"></div>
+<noscript><div class="wrap" style="padding-block:140px"><h1 class="h1">SeaThrough</h1><p class="lead">An Android app blocker with no forced lockout. Set limits for the apps you overuse; when time is up, the sea floods in. <a href="https://play.google.com/store/apps/details?id=com.mindylabs.seathrough">Google Play</a></p></div></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js" integrity="sha384-toVdrLSMaw7Y55MowcKqkmFL/Ek6Sky62NOk0b5sDDZBu2wcoPyyQUt9unDVjXhL" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/framer-motion@11.18.2/dist/framer-motion.js" integrity="sha384-MKgqXjmQ6Ua2YDo2EnYsoPUhz4NFfCUxfsvBuDgY8e8AmpTGyFAlWGxVBoHuCbfa" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" integrity="sha384-HOvlOYPIs/zjoIkWUGXkVmXsjr8GuZLV+Q+rcPwmJOVZVpvTSXQChiN4t9Euv9Vc" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" integrity="sha384-P8VzCVnT9NBUkMrpcIZrJbA7EBjJvh/fJS6PmP+4nLIM284DtsImIv8D0fFjIkeh" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js" integrity="sha384-xb96EMJeax+NLXMC88ZBa1xAeAW+kn+horHh/zFlbMLG2UPWhMJJSlv7fi57hS+Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js" integrity="sha384-FKTX0CNJ8ngN1oGMBReVu7mvjTJyjFiD5etb1NKnYxc+8eFI2O0KWnksTN+oTFcu" crossorigin="anonymous"></script>
+<script>
+// ---- copied from store/listing (keep in step): fish and the sunken clock (sea.js), feed pictures (screens.js), app icons (ui.js) ----
+const html = htm.bind(React.createElement);
+const SeaPaint = (() => {
+  const warn = console.warn;
+  const W = 384, H = 832, STATUS = 32, SAND = 16, CALM_DP = 48; // phone screen, status bar, floor above the bottom, Sim.CALM_DP
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const rgba = (r, g, b, a) => `rgba(${r},${g},${b},${a})`;
+  const mulberry = seed => () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  // ---- Waves.kt: five sines (amplitude dp, radians per dp, radians per s, phase); Waves.AGSL repeats them ----
+  const WA = [6.0, 3.5, 2.0, 1.2, 0.6], WK = [0.020, 0.037, 0.071, 0.130, 0.230];
+  const WW = [1.10, -1.55, 2.30, -3.10, 4.20], WP = [0, 1.3, 2.1, 0.4, 5.0];
+  const waveY = (x, t, amp = 1) => { let s = 0; for (let i = 0; i < 5; i++) s += WA[i] * Math.sin(x * WK[i] + t * WW[i] + WP[i]); return s * amp; };
+  const waveSlope = (x, t, amp = 1) => { let s = 0; for (let i = 0; i < 5; i++) s += WA[i] * WK[i] * Math.cos(x * WK[i] + t * WW[i] + WP[i]); return s * amp; };
+
+  // ---- Led.kt: segments a top, b top right, c bottom right, d bottom, e bottom left, f top left, g middle ----
+  const DIGITS = ['abcdef', 'bc', 'abdeg', 'abcdg', 'bcfg', 'acdfg', 'acdefg', 'abc', 'abcdefg', 'abcdfg'];
+  const segments = ch => DIGITS['0123456789'.indexOf(ch)] || '';
+  const ledWidth = ch => (ch === ':' ? 0.22 : 0.56), LED_GAP = 0.14, LED_STROKE = 0.12;
+  const LED = '#FF4834';
+  function drawLed(ctx, text, fw, fh, tk) {
+    let span = LED_GAP * (text.length - 1);
+    for (const ch of text) span += ledWidth(ch);
+    const hg = Math.min(fh * 0.56, fw * 0.78 / span), y = (fh - hg) / 2, t = hg * LED_STROKE;
+    let x = (fw - span * hg) / 2;
+    const box = (sg, w) => ({
+      a: [x + t, y, w - 2 * t, t], b: [x + w - t, y + t, t, hg / 2 - t / 2 - t], c: [x + w - t, y + hg / 2 + t / 2, t, hg / 2 - t / 2 - t],
+      d: [x + t, y + hg - t, w - 2 * t, t], e: [x, y + hg / 2 + t / 2, t, hg / 2 - t / 2 - t], f: [x, y + t, t, hg / 2 - t / 2 - t],
+      g: [x + t, y + hg / 2 - t / 2, w - 2 * t, t],
+    }[sg]);
+    for (const ch of text) {
+      const w = ledWidth(ch) * hg;
+      ctx.fillStyle = LED;
+      if (ch === ':') {
+        ctx.shadowColor = LED; ctx.shadowBlur = 5 * tk;
+        for (const f of [0.3, 0.7]) { ctx.beginPath(); ctx.arc(x + w / 2, y + hg * f, t / 2, 0, 7); ctx.fill(); }
+        ctx.shadowBlur = 0;
+      } else {
+        const on = segments(ch);
+        for (const sg of 'abcdefg') { // unlit segments first, faint like a real LCD; lit ones glow
+          const lit = on.includes(sg);
+          ctx.globalAlpha = lit ? 1 : 22 / 255;
+          ctx.shadowColor = lit ? LED : 'transparent'; ctx.shadowBlur = lit ? 5 * tk : 0;
+          ctx.beginPath(); ctx.roundRect(...box(sg, w), t / 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+      }
+      x += w + LED_GAP * hg;
+    }
+  }
+
+  // ---- fish, drawn in code: side view facing right, in units of the drawn length (x -.5..+.5), y down ----
+  // A smooth closed/open spline through points (Catmull-Rom as beziers).
+  function sp(p, pts, closed, move = true) {
+    const n = pts.length, g = i => pts[closed ? (i + n) % n : clamp(i, 0, n - 1)];
+    if (move) p.moveTo(...pts[0]); else p.lineTo(...pts[0]);
+    for (let i = 0; i < (closed ? n : n - 1); i++) {
+      const a = g(i - 1), b = g(i), c = g(i + 1), d = g(i + 2);
+      p.bezierCurveTo(b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6, c[0] - (d[0] - b[0]) / 6, c[1] - (d[1] - b[1]) / 6, c[0], c[1]);
+    }
+    if (closed) p.closePath();
+    return p;
+  }
+  const bodyPath = pts => sp(new Path2D(), pts, true);
+  const finPath = (b0, edge, b1) => { const p = new Path2D(); p.moveTo(...b0); sp(p, edge, false, false); p.lineTo(...b1); p.closePath(); return p; };
+  const mix = (a, b, f) => a.map((v, i) => v + (b[i] - v) * f);
+
+  // A translucent fin with fine ray lines fanning from its root, a rim along the free edge.
+  function drawFin(c, f, o) {
+    const path = finPath(f.b0, f.edge, f.b1), root = mix(f.b0, f.b1, 0.5);
+    c.save();
+    c.fillStyle = o.fin; c.fill(path);
+    c.clip(path);
+    c.strokeStyle = o.ray || 'rgba(0,0,0,0.22)'; c.lineWidth = 0.0032;
+    c.beginPath();
+    const pts = [f.b0, ...f.edge, f.b1];
+    for (let i = 0; i < pts.length - 1; i++) for (const q of [0, 0.5]) {
+      c.moveTo(...root); c.lineTo(...mix(pts[i], pts[i + 1], q));
+    }
+    c.stroke();
+    const g = c.createLinearGradient(...root, ...f.edge[Math.floor(f.edge.length / 2)]); // light toward the edge
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, o.tip || 'rgba(255,255,255,0.16)');
+    c.fillStyle = g; c.fill(path);
+    c.restore();
+    c.save();
+    c.strokeStyle = o.rim || 'rgba(0,0,0,0.3)'; c.lineWidth = o.rimW || 0.006; c.lineJoin = 'round'; c.lineCap = 'round';
+    c.beginPath(); sp(c, f.edge, false); c.stroke();
+    c.restore();
+  }
+
+  function band(c, x, w, lean, y0, y1, bow, fill, edge) { // a curved vertical stripe
+    const ym = (y0 + y1) / 2, p = new Path2D();
+    p.moveTo(x - w / 2 + lean, y0); p.quadraticCurveTo(x - w / 2 + bow, ym, x - w / 2 - lean, y1);
+    p.lineTo(x + w / 2 - lean, y1); p.quadraticCurveTo(x + w / 2 + bow, ym, x + w / 2 + lean, y0); p.closePath();
+    if (fill) { c.fillStyle = fill; c.fill(p); }
+    if (edge) {
+      c.strokeStyle = edge; c.lineWidth = 0.011; c.lineJoin = 'round';
+      c.beginPath(); c.moveTo(x - w / 2 + lean, y0); c.quadraticCurveTo(x - w / 2 + bow, ym, x - w / 2 - lean, y1); c.stroke();
+      c.beginPath(); c.moveTo(x + w / 2 + lean, y0); c.quadraticCurveTo(x + w / 2 + bow, ym, x + w / 2 - lean, y1); c.stroke();
+    }
+  }
+  // a curving stripe from the back to the belly, bulging toward the tail
+  function arc(c, xt, xb, y0, y1, bow) { c.beginPath(); c.moveTo(xt, y0); c.quadraticCurveTo((xt + xb) / 2 - bow, (y0 + y1) / 2, xb, y1); c.stroke(); }
+
+  function eye(c, x, y, r, iris) { // a large glossy eye with a catchlight
+    c.save();
+    c.fillStyle = 'rgba(0,0,0,0.5)'; c.beginPath(); c.arc(x, y, r * 1.2, 0, 7); c.fill();
+    const g = c.createRadialGradient(x - r * 0.2, y - r * 0.25, r * 0.1, x, y, r);
+    g.addColorStop(0, iris[0]); g.addColorStop(1, iris[1]);
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    c.fillStyle = '#05080A'; c.beginPath(); c.arc(x, y, r * 0.58, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.95)'; c.beginPath(); c.arc(x - r * 0.3, y - r * 0.36, r * 0.27, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.6)'; c.beginPath(); c.arc(x + r * 0.28, y + r * 0.3, r * 0.1, 0, 7); c.fill();
+    c.restore();
+  }
+
+  const FISH = {
+    clownfish: {
+      ar: 178 / 320, back: '#D9480F', mid: '#FF8A1E', belly: '#FFB14A', fin: 'rgba(255,128,20,0.9)', rim: '#15110E', rimW: 0.012,
+      body: [[.5, .01], [.46, -.08], [.36, -.15], [.2, -.195], [.02, -.205], [-.12, -.17], [-.23, -.095], [-.275, -.035], [-.275, .035], [-.23, .1], [-.12, .17], [.02, .205], [.2, .19], [.36, .14], [.46, .075]],
+      behind: [
+        { b0: [-.25, -.03], edge: [[-.36, -.16], [-.45, -.17], [-.5, -.09], [-.5, .0], [-.5, .09], [-.45, .17], [-.36, .16]], b1: [-.25, .03] }, // tail
+        { b0: [.2, -.19], edge: [[.17, -.25], [.08, -.275], [-.04, -.265], [-.13, -.24], [-.2, -.19]], b1: [-.2, -.13] }, // dorsal
+        { b0: [-.06, .185], edge: [[-.1, .245], [-.02, .265], [.05, .23]], b1: [.06, .195] }, // pelvic
+        { b0: [-.2, .13], edge: [[-.22, .2], [-.16, .21], [-.1, .17]], b1: [-.08, .17] }, // anal
+      ],
+      front: [{ b0: [.2, .0], edge: [[.17, .07], [.12, .115], [.07, .1], [.08, .03]], b1: [.2, .06] }], // pectoral
+      pattern(c) {
+        const white = '#FFF7EA', k = '#15110E';
+        band(c, .295, .075, .015, -.3, .3, -.01, white, k); // head band, leaning with the gill
+        band(c, -.015, .115, .01, -.3, .3, .018, white, k);
+        band(c, -.245, .05, .005, -.3, .3, .004, white, k);
+      },
+      eye: [.385, -.045, .027, ['#FFE9B5', '#B8651C']], gill: [.27, -.12],
+    },
+    emperor: {
+      ar: 203 / 320, back: '#0B1B45', mid: '#173578', belly: '#2A57A8', fin: 'rgba(22,48,110,0.9)', rim: '#FFD400', rimW: 0.008, ray: 'rgba(255,212,0,0.35)', tip: 'rgba(255,212,0,0.1)',
+      body: [[.47, .035], [.43, -.06], [.33, -.17], [.15, -.265], [-.06, -.285], [-.2, -.215], [-.29, -.1], [-.31, .02], [-.28, .13], [-.17, .22], [0, .275], [.17, .25], [.32, .16], [.43, .1]],
+      behind: [
+        { b0: [-.27, -.07], edge: [[-.36, -.14], [-.46, -.15], [-.5, -.06], [-.5, .04], [-.46, .13], [-.36, .12]], b1: [-.27, .09], fin: 'rgba(255,214,10,0.95)', rim: '#E5A800', ray: 'rgba(160,100,0,0.3)', tip: 'rgba(255,255,255,0.12)' },
+        { b0: [.1, -.27], edge: [[.04, -.31], [-.12, -.32], [-.26, -.31], [-.37, -.26], [-.33, -.19], [-.24, -.2]], b1: [-.22, -.19] },
+        { b0: [.12, .25], edge: [[.04, .3], [-.12, .32], [-.25, .3], [-.33, .26], [-.3, .2], [-.22, .19]], b1: [-.22, .17] },
+      ],
+      front: [{ b0: [.18, .0], edge: [[.15, .08], [.08, .13], [.04, .08], [.08, .01]], b1: [.2, .05], fin: 'rgba(255,212,0,0.8)', rim: '#E5A800' }],
+      pattern(c) {
+        c.strokeStyle = '#FFD60A'; c.lineWidth = 0.0125; c.lineCap = 'round';
+        for (let i = 0; i < 11; i++) { const x = 0.34 - i * 0.065; arc(c, x + 0.03, x - 0.035, -.32, .32, 0.045 + i * 0.002); }
+        const m = new Path2D(); sp(m, [[.43, -.1], [.36, -.115], [.27, -.1], [.2, -.06], [.2, .0], [.27, .035], [.36, .03], [.44, .0]], true); // black eye mask edged pale blue
+        c.strokeStyle = '#9BD8FF'; c.lineWidth = 0.02; c.stroke(m); c.fillStyle = '#04070C'; c.fill(m);
+      },
+      eye: [.32, -.052, .026, ['#9BD8FF', '#2D6BA5']], gill: [.12, -.2],
+    },
+    yellowtang: {
+      ar: 210 / 320, back: '#E0AE00', mid: '#FFD91A', belly: '#FFF080', fin: 'rgba(255,214,10,0.9)', rim: 'rgba(160,110,0,0.5)',
+      body: [[.5, .035], [.43, -.015], [.35, -.1], [.22, -.22], [.04, -.29], [-.14, -.265], [-.26, -.16], [-.31, -.04], [-.31, .05], [-.26, .16], [-.14, .265], [.04, .29], [.17, .24], [.3, .13], [.42, .075]],
+      behind: [
+        { b0: [-.27, -.06], edge: [[-.35, -.14], [-.43, -.18], [-.48, -.22], [-.43, -.07], [-.4, .0], [-.43, .08], [-.48, .22], [-.43, .18], [-.35, .14]], b1: [-.27, .07] },
+        { b0: [.22, -.22], edge: [[.2, -.285], [.05, -.325], [-.1, -.32], [-.24, -.27], [-.3, -.17]], b1: [-.25, -.15] },
+        { b0: [.14, .24], edge: [[.1, .29], [-.05, .325], [-.2, .3], [-.3, .22]], b1: [-.25, .16] },
+      ],
+      front: [{ b0: [.2, .02], edge: [[.17, .1], [.1, .14], [.06, .09], [.1, .02]], b1: [.22, .07] }],
+      pattern(c) {
+        c.fillStyle = '#FFFFFF'; // the white spine at the tail
+        c.beginPath(); c.moveTo(-.33, .0); c.quadraticCurveTo(-.27, -.018, -.2, -.01); c.quadraticCurveTo(-.26, .018, -.33, .02); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(190,130,0,0.5)'; c.lineWidth = 0.004; c.stroke();
+      },
+      eye: [.3, -.055, .03, ['#FFF2A0', '#C08A00']], gill: [.2, -.2],
+    },
+    gramma: {
+      ar: 184 / 320, back: '#B5127F', mid: '#D81B9A', belly: '#F056B8', fin: 'rgba(255,196,10,0.9)', rim: 'rgba(150,90,0,0.5)',
+      body: [[.5, .0], [.46, -.07], [.36, -.14], [.2, -.18], [0, -.19], [-.15, -.165], [-.27, -.095], [-.31, -.03], [-.31, .03], [-.27, .095], [-.15, .165], [0, .19], [.2, .18], [.36, .125], [.46, .06]],
+      behind: [
+        { b0: [-.28, -.04], edge: [[-.37, -.12], [-.46, -.14], [-.5, -.07], [-.5, .0], [-.5, .07], [-.46, .14], [-.37, .12]], b1: [-.28, .04] },
+        { b0: [.27, -.16], edge: [[.22, -.24], [.12, -.275], [-.02, -.265], [-.14, -.24], [-.24, -.17]], b1: [-.2, -.12] },
+        { b0: [.0, .185], edge: [[-.06, .245], [-.16, .26], [-.25, .17]], b1: [-.22, .09] },
+        { b0: [.1, .19], edge: [[.07, .25], [.14, .26], [.19, .19]], b1: [.2, .15] },
+      ],
+      front: [{ b0: [.2, .0], edge: [[.17, .07], [.11, .11], [.07, .08], [.09, .02]], b1: [.2, .05], fin: 'rgba(240,86,184,0.75)' }],
+      pattern(c) { // magenta front, a sharp turn to gold behind
+        const g = c.createLinearGradient(.04, -.2, -.05, .2);
+        g.addColorStop(0, '#FFC21A'); g.addColorStop(1, '#FFB000');
+        c.fillStyle = g;
+        c.beginPath(); c.moveTo(.02, -.3); c.quadraticCurveTo(-.02, 0, .0, .3); c.lineTo(-.6, .3); c.lineTo(-.6, -.3); c.closePath(); c.fill();
+        c.fillStyle = '#16060F'; c.beginPath(); c.ellipse(.17, -.15, .022, .016, -.3, 0, 7); c.fill(); // the royal gramma's spot
+      },
+      eye: [.37, -.04, .026, ['#FFE9F6', '#9C1B72']], gill: [.28, -.12],
+    },
+    idol: {
+      ar: 263 / 320, back: '#F1EEE4', mid: '#F8F6EC', belly: '#FFFFFF', fin: 'rgba(24,22,22,0.92)', rim: '#FFFFFF', rimW: 0.007, ray: 'rgba(255,255,255,0.22)', tip: 'rgba(255,255,255,0.06)',
+      body: [[.5, .1], [.44, .035], [.38, -.04], [.3, -.12], [.15, -.19], [-.03, -.205], [-.17, -.17], [-.26, -.07], [-.29, .06], [-.25, .17], [-.15, .26], [.0, .31], [.14, .3], [.26, .24], [.35, .17], [.42, .15]],
+      behind: [
+        { b0: [-.22, .03], edge: [[-.32, -.02], [-.41, -.03], [-.46, .06], [-.43, .15], [-.32, .2]], b1: [-.23, .12], fin: '#1A1818', rim: '#FFFFFF' }, // tail, black with a white edge
+        { b0: [.14, -.185], edge: [[.07, -.28], [-.02, -.35], [-.12, -.375], [-.2, -.38], [-.32, -.395], [-.45, -.4], [-.5, -.385], [-.38, -.37], [-.26, -.34], [-.2, -.27], [-.19, -.17]], b1: [-.17, -.14], rimW: 0.004 }, // sickle dorsal, long white filament
+        { b0: [-.1, .28], edge: [[-.14, .34], [-.2, .35], [-.24, .26]], b1: [-.2, .2] },
+      ],
+      front: [{ b0: [.2, .05], edge: [[.17, .13], [.1, .16], [.07, .11], [.1, .05]], b1: [.2, .1], fin: 'rgba(255,255,255,0.7)', rim: 'rgba(0,0,0,0.3)' }],
+      pattern(c) {
+        const K = '#14110F', Y = '#FFD21A';
+        band(c, .17, .115, .0, -.3, .4, .02, K); // the eye band
+        c.fillStyle = Y; c.beginPath(); c.ellipse(-.0, .15, .075, .13, 0.15, 0, 7); c.fill(); // yellow patch
+        band(c, -.115, .1, 0, -.3, .4, -.01, K); // broad rear band
+        band(c, -.265, .08, 0, -.3, .4, -.02, K);
+        c.fillStyle = '#FFA236'; c.beginPath(); c.ellipse(.43, .12, .06, .045, 0.2, 0, 7); c.fill(); // snout saddle
+      },
+      eye: [.215, -.015, .024, ['#EFE4D0', '#3B2F25']], gill: [.26, -.1],
+    },
+    angel: {
+      ar: 201 / 320, back: '#C22A0B', mid: '#F2511A', belly: '#FF9A3C', fin: 'rgba(214,52,14,0.88)', rim: '#2D6BFF', rimW: 0.02, ray: 'rgba(60,10,0,0.28)', tip: 'rgba(45,107,255,0.22)',
+      body: [[.46, .03], [.42, -.06], [.32, -.16], [.14, -.245], [-.06, -.265], [-.2, -.205], [-.29, -.1], [-.31, .02], [-.28, .12], [-.17, .21], [0, .26], [.17, .235], [.31, .15], [.42, .09]],
+      behind: [
+        { b0: [-.27, -.06], edge: [[-.36, -.12], [-.45, -.125], [-.5, -.05], [-.5, .04], [-.45, .12], [-.36, .1]], b1: [-.27, .08], rimW: 0.014 },
+        { b0: [.1, -.255], edge: [[.04, -.3], [-.1, -.315], [-.25, -.3], [-.36, -.25], [-.33, -.18], [-.22, -.19]], b1: [-.22, -.19] },
+        { b0: [.12, .24], edge: [[.04, .29], [-.1, .315], [-.25, .3], [-.35, .25], [-.31, .19], [-.22, .17]], b1: [-.22, .15] },
+      ],
+      front: [{ b0: [.18, .0], edge: [[.15, .08], [.08, .13], [.04, .08], [.08, .01]], b1: [.2, .05], fin: 'rgba(255,120,40,0.7)', rimW: 0.01 }],
+      pattern(c) {
+        c.strokeStyle = 'rgba(70,16,6,0.55)'; c.lineWidth = 0.0085; c.lineCap = 'round';
+        for (let i = 0; i < 9; i++) { const x = 0.25 - i * 0.058; arc(c, x + 0.02, x - 0.02, -.3, .3, 0.025); }
+        c.fillStyle = 'rgba(40,8,4,0.35)'; c.beginPath(); c.ellipse(.36, -.04, .075, .06, -.2, 0, 7); c.fill(); // darker face
+      },
+      eye: [.33, -.05, .027, ['#FFE6A0', '#B24A10']], gill: [.19, -.18],
+    },
+  };
+
+  // drawFish(ctx, { kind, x, y, len, flip, tilt }): centred on (x, y), len wide, facing right (flip mirrors); tilt > 0 is nose down.
+  function drawFish(c, f) {
+    const s = FISH[f.kind];
+    if (!s) return warn('no fish ' + f.kind);
+    c.save();
+    c.translate(f.x, f.y);
+    c.rotate((f.tilt || 0) * (f.flip ? -1 : 1));
+    if (f.flip) c.scale(-1, 1);
+    c.scale(f.len, f.len);
+    const body = bodyPath(s.body), ys = s.body.map(p => p[1]), xs = s.body.map(p => p[0]);
+    const top = Math.min(...ys), bot = Math.max(...ys), left = Math.min(...xs), right = Math.max(...xs), cx = (left + right) / 2 + 0.06;
+    const fo = fin => ({ fin: s.fin, rim: s.rim, rimW: s.rimW, ray: s.ray, tip: s.tip, ...fin });
+    for (const fin of s.behind) drawFin(c, fin, fo(fin));
+    c.save(); // body: darker back, lighter belly
+    const g = c.createLinearGradient(0, top, 0, bot);
+    g.addColorStop(0, s.back); g.addColorStop(0.5, s.mid); g.addColorStop(1, s.belly);
+    c.fillStyle = g; c.fill(body);
+    c.clip(body);
+    s.pattern(c);
+    const shade = c.createLinearGradient(0, top, 0, bot); // countershading
+    shade.addColorStop(0, 'rgba(0,0,0,0.28)'); shade.addColorStop(0.32, 'rgba(0,0,0,0)'); shade.addColorStop(0.72, 'rgba(255,255,255,0.04)'); shade.addColorStop(1, 'rgba(255,255,255,0.2)');
+    c.fillStyle = shade; c.fillRect(left, top, right - left, bot - top);
+    const hy = top + (bot - top) * 0.22, hl = c.createRadialGradient(cx, hy, 0, cx, hy, (right - left) * 0.34); // soft light from above
+    hl.addColorStop(0, 'rgba(255,255,255,0.3)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = hl; c.fillRect(left, top, right - left, (bot - top) * 0.6);
+    c.strokeStyle = 'rgba(0,0,0,0.22)'; c.lineWidth = 0.006; // the gill cover
+    c.beginPath(); c.moveTo(s.gill[0], s.gill[1]); c.quadraticCurveTo(s.gill[0] - 0.05, 0, s.gill[0] - 0.01, -s.gill[1]); c.stroke();
+    c.restore();
+    c.strokeStyle = 'rgba(0,0,0,0.38)'; c.lineWidth = 0.006; c.lineJoin = 'round'; c.stroke(body);
+    for (const fin of s.front) drawFin(c, fin, { ...fo(fin), rim: 'rgba(0,0,0,0.16)', rimW: 0.004 }); // a soft rim: a dark one reads as a scribble when small
+    eye(c, s.eye[0], s.eye[1], s.eye[2], s.eye[3]);
+    c.restore();
+  }
+
+  // ---- the sunken clock, drawn in code: an old digital alarm clock, front view, tilted 8 degrees ----
+  const clockHeight = w => w * 207 / 320;
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+  function barnacles(c, x, y, s, n, seed) {
+    const rnd = mulberry(seed);
+    for (let i = 0; i < n; i++) {
+      const bx = x + (rnd() - 0.5) * s * 1.6, by = y + (rnd() - 0.5) * s, r = s * (0.22 + rnd() * 0.22);
+      const g = c.createRadialGradient(bx - r * 0.3, by - r * 0.4, r * 0.1, bx, by, r);
+      g.addColorStop(0, '#FFFFFF'); g.addColorStop(1, '#BDB6A2');
+      c.fillStyle = g; c.beginPath(); c.arc(bx, by, r, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(80,70,50,0.4)'; c.lineWidth = r * 0.1; c.stroke();
+      c.strokeStyle = 'rgba(80,70,50,0.35)'; c.lineWidth = r * 0.07; // ridges
+      for (const a of [-0.9, 0, 0.9]) { c.beginPath(); c.moveTo(bx + Math.sin(a) * r * 0.2, by - r * 0.1); c.lineTo(bx + Math.sin(a) * r * 0.85, by + Math.cos(a) * r * 0.5); c.stroke(); }
+    }
+  }
+  function starfish(c, x, y, r) {
+    c.save(); c.translate(x, y); c.rotate(-0.5);
+    const p = new Path2D(), pts = [];
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * 0.42 : r; pts.push([Math.cos(a) * q, Math.sin(a) * q]); }
+    sp(p, pts, true);
+    const g = c.createRadialGradient(-r * 0.2, -r * 0.3, 0, 0, 0, r);
+    g.addColorStop(0, '#FFB070'); g.addColorStop(1, '#E8641E');
+    c.fillStyle = g; c.fill(p); c.strokeStyle = 'rgba(120,40,0,0.5)'; c.lineWidth = r * 0.06; c.stroke(p);
+    c.fillStyle = 'rgba(255,225,190,0.9)';
+    for (let i = 0; i < 5; i++) for (let j = 1; j < 4; j++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; c.beginPath(); c.arc(Math.cos(a) * r * 0.25 * j, Math.sin(a) * r * 0.25 * j, r * 0.035, 0, 7); c.fill(); }
+    c.restore();
+  }
+
+  // drawClock(ctx, x, y, w, text): top-left (x, y) of an unrotated w x w*207/320 box; returns the box height.
+  function drawClock(c, x, y, w, text) {
+    const h = clockHeight(w), k = c.getTransform().a, u = w / 320; // u: one sprite unit
+    c.save();
+    c.translate(x + w / 2, y + h / 2); c.rotate(-0.14); c.translate(-w / 2, -h / 2); // about 8 degrees
+    const bx = 0.02 * w, by = 0.1 * h, bw = 0.96 * w, bh = 0.88 * h;
+    for (const bxn of [0.6, 0.76]) { // two buttons on top
+      const g = c.createLinearGradient(0, by - 0.08 * h, 0, by + 0.04 * h);
+      g.addColorStop(0, '#F4EEDC'); g.addColorStop(1, '#B9B097');
+      c.fillStyle = g; rr(c, bxn * w, by - 0.075 * h, 0.1 * w, 0.14 * h, 0.04 * w); c.fill();
+      c.strokeStyle = 'rgba(80,70,50,0.5)'; c.lineWidth = u * 1.2; c.stroke();
+    }
+    const body = new Path2D(); body.roundRect(bx, by, bw, bh, 0.14 * w);
+    c.save();
+    c.shadowColor = 'rgba(0,0,0,0.35)'; c.shadowBlur = 10 * u * k; c.shadowOffsetY = 4 * u * k;
+    c.fillStyle = '#CFC6AA'; c.fill(body);
+    c.restore();
+    const g = c.createLinearGradient(0, by, 0, by + bh);
+    g.addColorStop(0, '#F7F2E2'); g.addColorStop(0.55, '#E6DEC5'); g.addColorStop(1, '#BDB397');
+    c.fillStyle = g; c.fill(body);
+    c.save(); c.clip(body); // chipped paint, a green-grey tint from the sea, rim light
+    c.fillStyle = 'rgba(120,150,140,0.16)'; c.fillRect(bx, by + bh * 0.7, bw, bh * 0.3);
+    for (const [cxn, cyn, rx, ry, rot] of [[0.12, 0.2, 14, 6, 0.4], [0.5, 0.06, 18, 4, 0], [0.88, 0.82, 12, 6, -0.3], [0.3, 0.93, 16, 5, 0.1], [0.95, 0.35, 7, 12, 0.2], [0.04, 0.7, 6, 10, 0]]) {
+      c.fillStyle = 'rgba(150,135,100,0.55)'; c.beginPath(); c.ellipse(cxn * w, cyn * h, rx * u, ry * u, rot, 0, 7); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.35)'; c.beginPath(); c.ellipse(cxn * w, cyn * h - ry * u * 0.4, rx * u * 0.8, ry * u * 0.3, rot, 0, 7); c.fill();
+    }
+    c.restore();
+    c.strokeStyle = 'rgba(90,78,55,0.55)'; c.lineWidth = u * 1.6; c.stroke(body);
+    c.save(); c.clip(body); c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = u * 2; // highlight along the top edge
+    c.beginPath(); c.roundRect(bx + u * 2.5, by + u * 2.5, bw - u * 5, bh - u * 5, 0.13 * w); c.stroke(); c.restore();
+    // the screen: a large glossy black glass across the front
+    const sx = 0.085 * w, sy = by + 0.15 * bh, sw = 0.83 * w, sh = 0.7 * bh, scr = new Path2D();
+    scr.roundRect(sx, sy, sw, sh, 0.07 * w);
+    c.save();
+    c.strokeStyle = 'rgba(70,60,42,0.7)'; c.lineWidth = u * 7; c.stroke(scr); // dark recess around it
+    const sg = c.createLinearGradient(0, sy, 0, sy + sh);
+    sg.addColorStop(0, '#0A1013'); sg.addColorStop(1, '#030507');
+    c.fillStyle = sg; c.fill(scr);
+    c.clip(scr);
+    const hz = c.createLinearGradient(sx, sy, sx + sw * 0.7, sy + sh);
+    hz.addColorStop(0, 'rgba(255,255,255,0.1)'); hz.addColorStop(0.5, 'rgba(255,255,255,0.03)'); hz.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = hz; c.fillRect(sx, sy, sw, sh);
+    c.save(); c.translate(sx, sy); // digits, then the specular streak over them
+    drawLed(c, text, sw, sh, k * w / 104);
+    c.restore();
+    c.fillStyle = 'rgba(255,255,255,0.09)';
+    c.beginPath(); c.moveTo(sx + sw * 0.08, sy); c.lineTo(sx + sw * 0.34, sy); c.lineTo(sx + sw * 0.1, sy + sh); c.lineTo(sx - sw * 0.06, sy + sh); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,0.14)'; c.lineWidth = u * 1.5;
+    c.beginPath(); c.roundRect(sx + u * 2, sy + u * 2, sw - u * 4, sh - u * 4, 0.06 * w); c.stroke();
+    c.restore();
+    barnacles(c, bx + 0.07 * w, by + 0.06 * h, 0.13 * w, 6, 4); // two corners
+    barnacles(c, bx + bw - 0.06 * w, by + bh - 0.04 * h, 0.12 * w, 5, 9);
+    starfish(c, bx + 0.012 * w, by + bh * 0.62, 0.075 * w);
+    c.restore();
+    return h;
+  }
+
+  return { drawFish, drawClock };
+})();
+// Code-drawn pictures for the feed (no photos): flat, layered, 360x450 like a 4:5 post.
+function PostArt({ scene }) {
+  let g = null;
+  if (scene === 'sunset') {
+    const ridges = [
+      ['#8B4F7D', 'M0 300L50 268L112 296L172 252L242 292L302 262L360 290V450H0Z'],
+      ['#5E3C72', 'M0 345Q60 300 124 332T250 322T360 338V450H0Z'],
+      ['#372A5C', 'M0 388Q84 346 166 382T360 372V450H0Z'],
+      ['#1B1842', 'M0 428Q100 396 204 422T360 412V450H0Z'],
+    ];
+    g = html`<defs>
+        <linearGradient id="sk1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27285C"/><stop offset=".45" stop-color="#C45A7C"/><stop offset=".72" stop-color="#F6A24F"/><stop offset="1" stop-color="#FFD58A"/></linearGradient>
+        <radialGradient id="sun1"><stop offset="0" stop-color="#FFF3C4"/><stop offset=".35" stop-color="#FFD27A"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient></defs>
+      <rect width="360" height="450" fill="url(#sk1)"/>
+      ${[[40, 40], [92, 74], [250, 38], [310, 90], [160, 28], [330, 150]].map(([x, y], i) => html`<circle key=${i} cx=${x} cy=${y} r="1.4" fill="#fff" opacity=".7"/>`)}
+      <circle cx="190" cy="262" r="120" fill="url(#sun1)"/><circle cx="190" cy="262" r="42" fill="#FFE9A8"/>
+      <path d="M30 170q40-12 90 0q30-8 60 2" stroke="#F8B4A0" stroke-width="7" stroke-linecap="round" fill="none" opacity=".5"/>
+      <path d="M220 130q50-10 100 4" stroke="#F8B4A0" stroke-width="6" stroke-linecap="round" fill="none" opacity=".45"/>
+      ${ridges.map(([c, d]) => html`<path key=${c} d=${d} fill=${c}/>`)}`;
+  } else if (scene === 'city') {
+    const bs = [[0, 46, 190], [40, 38, 250], [82, 54, 160], [132, 40, 290], [176, 60, 210], [232, 36, 330], [264, 52, 180], [312, 48, 260]];
+    g = html`<defs><linearGradient id="sk2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0C1230"/><stop offset=".6" stop-color="#3A2B66"/><stop offset="1" stop-color="#C0587A"/></linearGradient></defs>
+      <rect width="360" height="450" fill="url(#sk2)"/>
+      <circle cx="268" cy="96" r="26" fill="#F6EBD0"/><circle cx="280" cy="90" r="24" fill="#2A2158"/>
+      ${[[40, 50], [110, 30], [170, 90], [310, 40], [64, 120]].map(([x, y], i) => html`<circle key=${i} cx=${x} cy=${y} r="1.3" fill="#fff" opacity=".7"/>`)}
+      ${bs.map(([x, w, h], i) => html`<g key=${i}>
+        <rect x=${x} y=${450 - h} width=${w} height=${h} fill=${i % 2 ? '#141A38' : '#1B1F44'}/>
+        ${Array.from({ length: Math.floor(h / 22) * Math.floor((w - 8) / 12) }, (_, k) => {
+          const cols = Math.floor((w - 8) / 12), cx = x + 8 + (k % cols) * 12, cy = 450 - h + 10 + Math.floor(k / cols) * 22;
+          return (k * 7 + i * 13) % 5 < 2 ? html`<rect key=${k} x=${cx} y=${cy} width="6" height="9" rx="1" fill=${(k + i) % 4 ? '#FFD98A' : '#9FE3F0'} opacity=${0.55 + ((k * 3 + i) % 4) * 0.12}/>` : null;
+        })}</g>`)}
+      <rect y="428" width="360" height="22" fill="#0A0E24"/>`;
+  } else if (scene === 'beach') {
+    const spokes = Array.from({ length: 8 }, (_, i) => {
+      const a0 = (i * Math.PI) / 4, a1 = ((i + 1) * Math.PI) / 4, r = 62, c = [250, 292];
+      return html`<path key=${i} d=${`M${c[0]} ${c[1]}L${c[0] + r * Math.cos(a0)} ${c[1] + r * Math.sin(a0)}A${r} ${r} 0 0 1 ${c[0] + r * Math.cos(a1)} ${c[1] + r * Math.sin(a1)}Z`} fill=${i % 2 ? '#FFF6EA' : '#F26B5B'}/>`;
+    });
+    g = html`<defs><linearGradient id="sea3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F7E9A"/><stop offset=".7" stop-color="#2BB8B8"/><stop offset="1" stop-color="#9BE4DA"/></linearGradient></defs>
+      <rect width="360" height="450" fill="#F1DDB1"/>
+      <path d="M0 0H360V176Q300 196 240 178T120 184T0 170Z" fill="url(#sea3)"/>
+      <path d="M0 170Q60 184 120 184T240 178T360 190" stroke="#fff" stroke-width="6" fill="none" opacity=".85" stroke-linecap="round"/>
+      <path d="M0 150Q70 166 130 164T250 158T360 168" stroke="#fff" stroke-width="3" fill="none" opacity=".4" stroke-linecap="round"/>
+      <path d="M0 196Q60 210 120 208T240 202T360 214V224Q300 214 240 212T120 218T0 206Z" fill="#E3C98F" opacity=".6"/>
+      <g transform="rotate(-14 90 340)"><rect x="40" y="300" width="100" height="62" rx="4" fill="#3A8FD6"/>
+        ${[0, 1, 2, 3, 4].map(i => html`<rect key=${i} x=${48 + i * 19} y="300" width="8" height="62" fill="#F7F1E4"/>`)}</g>
+      <ellipse cx="272" cy="316" rx="62" ry="22" fill="#B08F5C" opacity=".35"/>
+      ${spokes}<circle cx="250" cy="292" r="5" fill="#fff"/>
+      <circle cx="130" cy="410" r="4" fill="#C9A46A"/><circle cx="150" cy="420" r="3" fill="#C9A46A"/><circle cx="62" cy="400" r="5" fill="#E8D6A8"/>`;
+  } else { // balloons at dawn over hills (it replaced a noodle bowl that read as a muddy yellow blob, user 2026-10-17)
+    const balloon = (id, x, y, r, a, b, fade = 1) => { // curved gores: nested ellipses clipped to the envelope
+      const env = `M${-r},0A${r},${r} 0 0 1 ${r},0C${r},${0.62 * r} ${0.42 * r},${1.02 * r} ${0.24 * r},${1.3 * r}L${-0.24 * r},${1.3 * r}C${-0.42 * r},${1.02 * r} ${-r},${0.62 * r} ${-r},0Z`;
+      return html`<g transform=${`translate(${x} ${y})`} opacity=${fade}>
+        <clipPath id=${`bal-${id}`}><path d=${env}/></clipPath>
+        <g clip-path=${`url(#bal-${id})`}>
+          <rect x=${-r} y=${-r} width=${2 * r} height=${2.4 * r} fill=${a}/>
+          ${[0.78, 0.5, 0.2].map((k, i) => html`<ellipse key=${i} cx="0" cy=${0.32 * r} rx=${k * r} ry=${1.5 * r} fill=${i % 2 ? a : b}/>`)}
+          <rect x=${-r} y=${-r} width=${2 * r} height=${2.4 * r} fill="url(#bal-shade)"/>
+        </g>
+        <path d=${`M${-0.24 * r},${1.3 * r}L${-0.15 * r},${1.62 * r}M${0.24 * r},${1.3 * r}L${0.15 * r},${1.62 * r}`} stroke="#5B4636" stroke-width=${Math.max(0.8, r * 0.025)}/>
+        <rect x=${-0.17 * r} y=${1.6 * r} width=${0.34 * r} height=${0.24 * r} rx=${0.04 * r} fill="#9A6A45"/>
+        <rect x=${-0.17 * r} y=${1.6 * r} width=${0.34 * r} height=${0.06 * r} fill="#7A5236"/>
+      </g>`;
+    };
+    const hills = [
+      ['#C8B3DD', '#B39FD0', 'M0 318C40 300 80 296 120 306S200 300 240 290 320 296 360 306V450H0Z'],
+      ['#8FAFD6', '#7896C2', 'M0 352C50 334 100 334 150 346S250 338 300 330 345 334 360 338V450H0Z'],
+      ['#5E9C8A', '#4A8574', 'M0 386C60 366 120 370 180 382S290 372 360 364V450H0Z'],
+      ['#3F7C68', '#2F6553', 'M0 420C70 404 150 410 220 418S320 410 360 404V450H0Z'],
+    ];
+    const hill = i => html`<path d=${hills[i][2]} fill=${`url(#hl${i})`}/>`;
+    g = html`<defs>
+        <linearGradient id="sk4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9CC3EE"/><stop offset=".5" stop-color="#F4D2CC"/><stop offset=".78" stop-color="#FFE3C0"/></linearGradient>
+        <radialGradient id="sun4"><stop offset="0" stop-color="#FFF8E6"/><stop offset=".45" stop-color="#FFEBC4"/><stop offset="1" stop-color="#FFEBC4" stop-opacity="0"/></radialGradient>
+        <linearGradient id="bal-shade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#1A1030" stop-opacity=".22"/></linearGradient>
+        ${hills.map(([a, b], i) => html`<linearGradient key=${i} id=${`hl${i}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color=${a}/><stop offset="1" stop-color=${b}/></linearGradient>`)}</defs>
+      <rect width="360" height="450" fill="url(#sk4)"/>
+      <circle cx="256" cy="318" r="92" fill="url(#sun4)"/><circle cx="256" cy="318" r="30" fill="#FFF6DD"/>
+      <g fill="#fff" opacity=".75"><ellipse cx="70" cy="92" rx="38" ry="9"/><ellipse cx="98" cy="86" rx="22" ry="8"/><ellipse cx="300" cy="196" rx="34" ry="7"/><ellipse cx="282" cy="191" rx="18" ry="6"/></g>
+      ${balloon('c', 300, 236, 15, '#FFC857', '#FF9F43', 0.85)}${hill(0)}${hill(1)}
+      ${balloon('b', 262, 120, 34, '#2BB3B1', '#F4FBFA')}${hill(2)}${hill(3)}
+      ${balloon('a', 112, 150, 62, '#FF7A6B', '#FFF1DE')}
+      <path d="M196 70l6 5 6-5M214 62l4 4 4-4" stroke="#5E6A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  return html`<svg width="360" height="450" viewBox="0 0 360 450" style=${{ display: 'block', margin: '0 12px', borderRadius: '14px' }}>${g}</svg>`;
+}
+
+const ICONS = {
+  loop: { bg: 'linear-gradient(140deg, #FF6B4A, #E2366B)', glyph: html`<circle cx="24" cy="24" r="10.5" fill="none" stroke="#fff" stroke-width="4.2" stroke-dasharray="54 12" stroke-linecap="round" transform="rotate(-60 24 24)"/><path d="M31.5 9.8l4.6 7.4-8.6.6z" fill="#fff"/>` },
+  pictura: { bg: 'linear-gradient(140deg, #23C59A, #0E8C7A)', glyph: html`<circle cx="24" cy="24" r="11" fill="none" stroke="#fff" stroke-width="3.6"/><circle cx="24" cy="24" r="4.2" fill="#fff"/>` },
+  chatter: { bg: 'linear-gradient(140deg, #8F6BFF, #5B3FD6)', glyph: html`<path d="M12 14.5c0-2.5 2-4.5 4.5-4.5h15c2.5 0 4.5 2 4.5 4.5v10c0 2.5-2 4.5-4.5 4.5H21l-6.5 6v-6H16.5c-2.5 0-4.5-2-4.5-4.5z" fill="#fff"/>` },
+  headline: { bg: 'linear-gradient(140deg, #2B3440, #10151B)', glyph: html`<text x="24" y="33" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#fff">H</text>` },
+};
+
+</script>
+<script>
+const { useState, useEffect, useLayoutEffect, useRef, memo } = React;
+const { motion, AnimatePresence, useMotionValue, useSpring } = Motion;
+gsap.registerPlugin(ScrollTrigger, SplitText);
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PLAY = 'https://play.google.com/store/apps/details?id=com.mindylabs.seathrough';
+const PRIVACY = 'https://mindylabs.github.io/SeaThrough/privacy.html';
+const S = { pinStart: 0, pinEnd: 0, surf: 1e5, t: 0, mouse: { x: -1e4, y: -1e4 }, rip: [] }; // shared scroll and pointer state
+const pad = n => String(Math.floor(n)).padStart(2, '0');
+const mmss = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
+
+// ---- smooth scroll: Lenis drives the window, GSAP's ticker drives Lenis, ScrollTrigger listens ----
+let lenis = null;
+if (!REDUCE) {
+  lenis = new Lenis({ lerp: 0.09, anchors: true });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+}
+const scrollToY = y => lenis ? lenis.scrollTo(y, { duration: 1.8 }) : scrollTo({ top: y, behavior: 'smooth' });
+const seeFlood = () => scrollToY(S.pinStart + (S.pinEnd - S.pinStart) * 0.62);
+
+// ---- the water: one fragment shader, side view (surface line, sunlit to deep, caustics, shafts, marine snow, click rings) ----
+// Surface = the app's five sines (Waves.kt, as in store/listing/sea.js). Units are CSS px, y down.
+const FRAG = `precision highp float;
+uniform vec2 uRes; uniform float uK, uT, uSurf, uDepth, uScroll, uAlpha, uAmp; uniform vec2 uMouse; uniform vec4 uRip[4];
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float waves(float x) {
+  float t = uT;
+  return 6.0 * sin(x * 0.020 + t * 1.10) + 3.5 * sin(x * 0.037 - t * 1.55 + 1.3) + 2.0 * sin(x * 0.071 + t * 2.30 + 2.1)
+       + 1.2 * sin(x * 0.130 - t * 3.10 + 0.4) + 0.6 * sin(x * 0.230 + t * 4.20 + 5.0);
+}
+float caustic(vec2 uv, float t) {
+  vec2 p = mod(uv * 6.28318, 6.28318) - 250.0, i = p;
+  float c = 1.0;
+  for (int n = 0; n < 5; n++) {
+    float tt = t * (1.0 - 3.5 / float(n + 1));
+    i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
+    c += 1.0 / length(vec2(p.x / (sin(i.x + tt) / 0.005), p.y / (cos(i.y + tt) / 0.005)));
+  }
+  c = 1.17 - pow(c / 5.0, 1.4);
+  return pow(abs(c), 8.0);
+}
+void main() {
+  vec2 res = uRes / uK, fc = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uK;
+  float t = uT, rs = 0.0;
+  for (int i = 0; i < 4; i++) {
+    vec4 r = uRip[i]; float age = t - r.z;
+    if (age > 0.0 && age < 4.0 && r.w > 0.0) {
+      float dx = abs(fc.x - r.x);
+      rs += r.w * sin(dx * 0.055 - age * 9.0) * exp(-age * 1.1) * exp(-dx * 0.004) * (1.0 - smoothstep(age * 380.0, age * 380.0 + 60.0, dx));
+    }
+  }
+  float d = fc.y - (uSurf + (waves(fc.x) + rs) * uAmp);
+  if (d < -3.0) { gl_FragColor = vec4(0.0); return; }
+  float dp = max(d, 0.0), dl = min(dp, 700.0), k = clamp(uDepth + dl / 2600.0, 0.0, 1.4); // local depth capped: deepness comes from uDepth
+  vec3 col = mix(vec3(0.36, 0.80, 0.88), vec3(0.09, 0.52, 0.68), smoothstep(0.0, 0.22, k));
+  col = mix(col, vec3(0.03, 0.22, 0.36), smoothstep(0.18, 0.65, k));
+  col = mix(col, vec3(0.008, 0.055, 0.11), smoothstep(0.6, 1.25, k));
+  float light = exp(-dl / 900.0) * (1.0 - 0.8 * smoothstep(0.0, 1.0, uDepth));
+  vec2 q = fc + vec2(0.0, uScroll * 0.3);
+  q += vec2(sin(fc.y * 0.021 + t * 1.3) + 0.5 * sin(fc.y * 0.047 - t * 0.9), cos(fc.x * 0.018 + t * 1.1)) * 7.0;
+  float ring = 0.0;
+  for (int i = 0; i < 4; i++) {
+    vec4 r = uRip[i]; float age = t - r.z;
+    if (age > 0.0 && age < 3.0) {
+      vec2 v = fc - r.xy; float dd = length(v) + 0.001;
+      float g = exp(-pow((dd - age * 340.0) / 28.0, 2.0)) * exp(-age * 1.5);
+      ring += g; q += v / dd * g * 16.0;
+    }
+  }
+  float ca = caustic(q / 430.0 + vec2(t * 0.012, t * 0.005), t * 0.45);
+  float cb = caustic(mat2(0.8, -0.6, 0.6, 0.8) * q / 300.0 - vec2(t * 0.01, 0.0), t * 0.37 + 3.0);
+  col += vec3(0.72, 1.0, 0.97) * (ca * 0.6 + cb * 0.45) * 0.45 * light;
+  float sx = fc.x + fc.y * 0.38;
+  float r1 = pow(0.5 + 0.5 * sin(sx * 0.010 + t * 0.25 + 2.4 * sin(sx * 0.0037 + t * 0.11)), 7.0);
+  float r2 = pow(0.5 + 0.5 * sin(sx * 0.023 - t * 0.18 + 1.7 + 1.5 * sin(sx * 0.006 - t * 0.07)), 11.0);
+  col += vec3(0.75, 0.97, 1.0) * (r1 * 0.65 + r2 * 0.45) * smoothstep(0.0, 90.0, dp) * exp(-dl / 1100.0) * 0.22 * (0.25 + 0.75 * light);
+  float snow = 0.0;
+  for (int l = 0; l < 3; l++) {
+    float fl = float(l), cell = 90.0 + fl * 55.0;
+    vec2 g = (fc + vec2(t * (6.0 + fl * 3.0), -t * (9.0 + fl * 4.0) + uScroll * (0.15 + fl * 0.12))) / cell;
+    vec2 id = floor(g), f = fract(g) - 0.5;
+    float h = hash(id + fl * 17.0);
+    vec2 o = vec2(hash(id + 3.1 + fl), hash(id + 7.7 - fl)) - 0.5;
+    float sz = (0.02 + h * 0.03) * (1.0 + fl * 0.35);
+    snow += (1.0 - smoothstep(0.0, sz, length(f - o * 0.7))) * (0.55 + 0.45 * sin(t * (1.0 + h * 2.0) + h * 6.28)) * step(0.35, h);
+  }
+  col += vec3(0.8, 0.95, 1.0) * snow * 0.32 + vec3(0.7, 0.95, 1.0) * ring * 0.22;
+  col += vec3(0.85, 1.0, 1.0) * exp(-dp / 16.0) * 0.28;
+  float slope = (waves(fc.x + 2.0) - waves(fc.x - 2.0)) * 0.25 * uAmp;
+  col += step(0.986, hash(floor(fc / vec2(5.0, 3.0)) + floor(t * 7.0))) * exp(-dp / 22.0) * smoothstep(0.1, 0.8, abs(slope)) * 0.9;
+  col *= 1.0 - 0.22 * smoothstep(0.2, 1.0, fc.y / res.y) * (0.4 + 0.6 * smoothstep(0.0, 0.5, uDepth));
+  vec2 mv = fc - uMouse;
+  col += vec3(0.5, 0.85, 1.0) * exp(-dot(mv, mv) / 26000.0) * 0.08 * (0.3 + light);
+  col = mix(col, vec3(1.0), exp(-abs(d) * 0.8) * 0.85);
+  float a = uAlpha * smoothstep(-2.5, 0.5, d);
+  gl_FragColor = vec4(col * a, a);
+}`;
+
+function createSea(canvas, scale) {
+  const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
+  if (!gl) return null;
+  const shader = (type, src) => {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.error(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  };
+  const vs = shader(gl.VERTEX_SHADER, 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }'), fs = shader(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) return null;
+  const pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { console.error(gl.getProgramInfoLog(pr)); return null; }
+  gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // one triangle over the viewport
+  const at = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+  const U = {};
+  for (const n of ['uRes', 'uK', 'uT', 'uSurf', 'uDepth', 'uScroll', 'uAlpha', 'uAmp', 'uMouse', 'uRip']) U[n] = gl.getUniformLocation(pr, n);
+  const rip = new Float32Array(16);
+  return {
+    draw(u) {
+      const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1, k = scale();
+      const W = Math.max(1, Math.round(w * k)), H = Math.max(1, Math.round(h * k));
+      if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+      gl.viewport(0, 0, W, H);
+      gl.uniform2f(U.uRes, W, H); gl.uniform1f(U.uK, W / w); gl.uniform1f(U.uT, u.t); gl.uniform1f(U.uSurf, u.surf);
+      gl.uniform1f(U.uDepth, u.depth); gl.uniform1f(U.uScroll, u.scroll || 0); gl.uniform1f(U.uAlpha, u.alpha); gl.uniform1f(U.uAmp, u.amp);
+      gl.uniform2f(U.uMouse, u.mouse ? u.mouse.x : -1e4, u.mouse ? u.mouse.y : -1e4);
+      for (let i = 0; i < 4; i++) { const r = (u.rip || [])[i]; rip.set(r ? [r.x, r.y, r.t0, r.amp] : [0, 0, -99, 0], i * 4); }
+      gl.uniform4fv(U.uRip, rip);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    },
+    clear() { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); },
+  };
+}
+
+// ---- fish: the listing's code-drawn species, baked once per size into sprites, steered like Sim.kt (waypoints, own pace) ----
+const KINDS = ['clownfish', 'emperor', 'yellowtang', 'gramma', 'idol', 'angel'];
+const SPRITES = new Map();
+function sprite(kind, len, tint, res) {
+  const L = Math.round(len / 4) * 4, key = `${kind}|${L}|${tint}|${res.toFixed(2)}`;
+  let c = SPRITES.get(key);
+  if (c) return c;
+  c = document.createElement('canvas');
+  c.cw = L * 1.12; c.ch = L * 0.92;
+  c.width = Math.ceil(c.cw * res); c.height = Math.ceil(c.ch * res);
+  const x = c.getContext('2d');
+  x.scale(res, res);
+  SeaPaint.drawFish(x, { kind, x: c.cw / 2, y: c.ch / 2, len: L });
+  if (tint) { x.globalCompositeOperation = 'source-atop'; x.fillStyle = `rgba(12, 84, 116, ${tint})`; x.fillRect(0, 0, c.cw, c.ch); }
+  SPRITES.set(key, c);
+  return c;
+}
+const rng = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+class School {
+  constructor(n, seed, lo, hi) {
+    this.r = rng(seed);
+    this.fish = Array.from({ length: n }, (_, i) => ({ kind: KINDS[(i + Math.floor(this.r() * 6)) % 6], len: lo + this.r() * (hi - lo), tint: 0,
+      x: 0, y: 0, vx: 0, vy: 0, face: 1, tx: 0, ty: 0, next: 0, pace: 0.75 + this.r() * 0.5, ph: this.r() * 6.3, in: false }));
+  }
+  step(dt, t, box, active, mouse) {
+    const r = this.r;
+    this.fish.forEach((f, i) => {
+      const want = i < active;
+      if (want && !f.in) { // swim in from a side
+        const left = r() < 0.5;
+        Object.assign(f, { in: true, x: left ? box.x0 - f.len : box.x1 + f.len, y: box.y0 + r() * (box.y1 - box.y0), vx: left ? 70 : -70, vy: 0, face: left ? 1 : -1, next: 0 });
+      }
+      if (!f.in) return;
+      if (!want) { // leave by the nearest side, fast (Sim.LEAVE_DP)
+        const dir = f.x < (box.x0 + box.x1) / 2 ? -1 : 1;
+        f.vx += (dir * 260 - f.vx) * Math.min(1, dt * 3); f.vy *= 0.9;
+        if (f.x < box.x0 - f.len * 2 || f.x > box.x1 + f.len * 2) f.in = false;
+      } else {
+        if (t > f.next) { f.tx = box.x0 + 50 + r() * Math.max(10, box.x1 - box.x0 - 100); f.ty = box.y0 + r() * Math.max(10, box.y1 - box.y0); f.next = t + 4 + r() * 8; }
+        const dx = f.tx - f.x, dy = f.ty - f.y, dist = Math.hypot(dx, dy) || 1, sp = 40 * f.pace * Math.sqrt(f.len / 50);
+        let ax = (dx / dist) * sp - f.vx, ay = (dy / dist) * sp * 0.6 - f.vy;
+        if (mouse) {
+          const mx = f.x - mouse.x, my = f.y - mouse.y, md = Math.hypot(mx, my) || 1;
+          if (md < 160) { ax += (mx / md) * 520 * (1 - md / 160); ay += (my / md) * 340 * (1 - md / 160); }
+        }
+        f.vx += ax * dt * 1.1; f.vy += ay * dt * 1.1;
+        if (f.y < box.y0) f.vy += (box.y0 - f.y) * dt * 5;
+        if (f.y > box.y1) f.vy -= (f.y - box.y1) * dt * 5;
+      }
+      f.x += f.vx * dt; f.y += f.vy * dt;
+      if (Math.abs(f.vx) > 8) f.face += (Math.sign(f.vx) - f.face) * Math.min(1, dt * 5);
+      f.ph += dt * (4 + Math.abs(f.vx) / 18);
+    });
+  }
+  dart(x, y) {
+    for (const f of this.fish) {
+      const dx = f.x - x, dy = f.y - y, d = Math.hypot(dx, dy) || 1;
+      if (f.in && d < 280) { f.vx += (dx / d) * 520; f.vy += (dy / d) * 260; }
+    }
+  }
+  draw(ctx, res) {
+    for (const f of this.fish) {
+      if (!f.in) continue;
+      const img = sprite(f.kind, f.len, f.tint, res), s = Math.sign(f.face) || 1;
+      const tilt = Math.max(-0.4, Math.min(0.4, f.vy / (Math.abs(f.vx) + 30)));
+      ctx.save();
+      ctx.translate(f.x, f.y); ctx.rotate(tilt * s); // a turn is a yaw: never thinner than 0.28 (TankPainter)
+      ctx.scale(s * Math.max(0.28, Math.abs(f.face)) * (1 + 0.035 * Math.sin(f.ph)), 1 - 0.02 * Math.sin(f.ph));
+      ctx.drawImage(img, -img.cw / 2, -img.ch / 2, img.cw, img.ch);
+      ctx.restore();
+    }
+  }
+}
+class Bubbles {
+  constructor() { this.b = []; this.acc = 0; }
+  burst(x, y, n = 16) {
+    for (let i = 0; i < n; i++) this.b.push({ x: x + (Math.random() - 0.5) * 24, y, r: 2 + Math.random() * 6, vx: (Math.random() - 0.5) * 120, vy: -(70 + Math.random() * 140), ph: Math.random() * 6 });
+  }
+  step(dt, surf, vw, vh, ambient) {
+    if (ambient) for (this.acc += dt; this.acc > 0.4; this.acc -= 0.4) if (this.b.length < 70) this.b.push({ x: Math.random() * vw, y: vh + 12, r: 1.4 + Math.random() * 4, vx: 0, vy: -(30 + Math.random() * 50), ph: Math.random() * 6 });
+    for (const q of this.b) { q.vx *= 1 - Math.min(1, dt * 2); q.vy -= dt * 20; q.x += (q.vx + Math.sin(q.ph) * 16) * dt; q.y += q.vy * dt; q.ph += dt * 3; }
+    this.b = this.b.filter(q => q.y > surf + q.r + 3 && q.y > -20);
+  }
+  draw(ctx) {
+    ctx.lineWidth = 1;
+    for (const q of this.b) {
+      ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, 7);
+      ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(q.x - q.r * 0.35, q.y - q.r * 0.35, q.r * 0.28, 0, 7); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+    }
+  }
+}
+
+// ---- the page's own sea: the surface waits at the bottom through the opener, then rises over the page; deeper to the end ----
+function startOcean() {
+  const cv = document.getElementById('sea'), lc = document.getElementById('life'), ctx = lc.getContext('2d'), gauge = document.getElementById('gauge');
+  let quality = 1, slow = 0;
+  const sea = createSea(cv, () => Math.min(devicePixelRatio || 1, 1.5) * (innerWidth < 700 ? 0.6 : 0.72) * quality);
+  if (!sea) document.documentElement.classList.add('nogl');
+  const school = new School(8, 11, 30, 96), bubbles = new Bubbles();
+  school.fish.forEach(f => { f.tint = f.len < 52 ? 0.5 : f.len < 72 ? 0.25 : 0.06; }); // far fish take on the water's colour
+  addEventListener('pointermove', e => { S.mouse.x = e.clientX; S.mouse.y = e.clientY; }, { passive: true });
+  addEventListener('pointerdown', e => {
+    if (e.target.closest('a, button, .phone, .card') || e.clientY < S.surf) return;
+    S.rip = [{ x: e.clientX, y: e.clientY, t0: S.t, amp: Math.abs(e.clientY - S.surf) < 140 ? 8 : 0 }, ...S.rip].slice(0, 4);
+    bubbles.burst(e.clientX, e.clientY); school.dart(e.clientX, e.clientY);
+  });
+  gsap.ticker.add((time, dms) => {
+    const dt = Math.min(dms / 1000, 0.1), vw = innerWidth, vh = innerHeight, y = scrollY;
+    if (dms > 26) { if (++slow > 45 && quality > 0.55) { quality *= 0.85; slow = 0; } } else slow = Math.max(0, slow - 1); // keep frames short
+    S.t = time;
+    const ps = S.pinStart, pe = S.pinEnd || vh * 2.6, gone = pe + (vh * 0.84) / 1.2;
+    const surf = y <= pe ? vh * (0.9 - (0.06 * Math.max(0, y - ps)) / Math.max(1, pe - ps)) : vh * 0.84 - (y - pe) * 1.2;
+    S.surf = surf;
+    const end = Math.max(1, document.documentElement.scrollHeight - vh - gone), deepness = Math.min(1, Math.max(0, (y - gone) / end));
+    const depth = y < gone ? (Math.max(0, y - pe) / (gone - pe)) * 0.26 : 0.26 + deepness * 0.84;
+    if (sea) sea.draw({ t: REDUCE ? 6 : time, surf, depth, scroll: y, alpha: 1, amp: 1.25, mouse: S.mouse, rip: S.rip });
+    if (gauge) { gauge.style.opacity = y > gone - vh * 0.2 ? 1 : 0; gauge.firstChild.nextSibling.textContent = `${Math.round(deepness * 38)} m`; }
+    const res = Math.min(devicePixelRatio || 1, 2);
+    if (lc.width !== Math.round(vw * res) || lc.height !== Math.round(vh * res)) { lc.width = Math.round(vw * res); lc.height = Math.round(vh * res); }
+    ctx.setTransform(res, 0, 0, res, 0, 0); ctx.clearRect(0, 0, vw, vh);
+    const box = { x0: -40, x1: vw + 40, y0: Math.max(surf + 70, 40), y1: vh - 40 }, room = box.y1 - box.y0 > 160;
+    if (!REDUCE) { school.step(dt, time, box, room ? 8 : 0, S.mouse); bubbles.step(dt, surf, vw, vh, room); }
+    school.draw(ctx, res); bubbles.draw(ctx);
+  });
+}
+
+// ---- a flood in a box: water (the same shader at 0.8 like FLOOD_OPACITY), fish, sand and the sunken clock ----
+function SeaPane({ state, seed = 3, fishN = 10, top = 36 }) {
+  const box = useRef(null), glc = useRef(null), fc = useRef(null);
+  useEffect(() => {
+    const sea = createSea(glc.current, () => Math.min(devicePixelRatio || 1, 2) * 0.8), ctx = fc.current.getContext('2d');
+    const school = new School(fishN, seed, 44, 64);
+    let level = 0, vis = true;
+    const io = new IntersectionObserver(([e]) => { vis = e.isIntersecting; });
+    io.observe(box.current);
+    const tick = (time, dms) => {
+      if (!vis) return;
+      const dt = Math.min(dms / 1000, 0.1), s = state.current, W = box.current.clientWidth, H = box.current.clientHeight, k = W / 384;
+      level += (s.target - level) * (1 - Math.exp(-dt * (s.target > level ? 2.4 : 1.3))); // rush up, drain slower (Sim.step easing)
+      const floor = H / k - 14, surfD = floor - level * (floor - top), deep = floor - surfD;
+      if (sea) {
+        if (level < 0.004) sea.clear();
+        else sea.draw({ t: time, surf: surfD * k, depth: 0.06, alpha: 0.8, amp: k * 0.6 * Math.min(1, deep / 48) }); // waves shrink in shallow water (Sim.waveScale)
+      }
+      const res = Math.min(devicePixelRatio || 1, 2);
+      if (fc.current.width !== Math.round(W * res) || fc.current.height !== Math.round(H * res)) { fc.current.width = Math.round(W * res); fc.current.height = Math.round(H * res); }
+      ctx.setTransform(res, 0, 0, res, 0, 0); ctx.clearRect(0, 0, W, H); ctx.scale(k, k);
+      if (level > 0.004) { // sand along the floor
+        ctx.globalAlpha = Math.min(1, level * 10) * 0.85;
+        const g = ctx.createLinearGradient(0, floor, 0, floor + 14); g.addColorStop(0, '#F1DFAE'); g.addColorStop(1, '#C9A46A');
+        ctx.fillStyle = g; ctx.fillRect(0, floor, 384, 20); ctx.globalAlpha = 1;
+      }
+      if (s.clock && surfD < floor - 90) { // TankPainter: 104 dp at 60% of the width, 10% into the sand
+        ctx.globalAlpha = Math.min(1, (floor - 90 - surfD) / 40);
+        SeaPaint.drawClock(ctx, 384 * 0.6 - 52, floor - (104 * 207) / 320 * 0.9, 104, s.clock);
+        ctx.globalAlpha = 1;
+      }
+      school.step(dt, time, { x0: 0, x1: 384, y0: surfD + 36, y1: floor - 50 }, level > 0.12 && !s.leave ? s.fish : 0, null);
+      school.draw(ctx, res * k);
+    };
+    gsap.ticker.add(tick);
+    return () => { gsap.ticker.remove(tick); io.disconnect(); };
+  }, []);
+  return html`<div ref=${box} className="pane" aria-hidden="true"><canvas ref=${glc}></canvas><canvas ref=${fc}></canvas></div>`;
+}
+
+// ---- small parts ----
+function Scaled({ w = 384, h = 832, className = '', children }) {
+  const r = useRef(null);
+  useLayoutEffect(() => {
+    const el = r.current, box = el.parentElement, fit = () => { el.style.transform = `scale(${box.clientWidth / w})`; };
+    fit();
+    const ro = new ResizeObserver(fit); ro.observe(box);
+    return () => ro.disconnect();
+  }, []);
+  return html`<div ref=${r} className=${'scaled ' + className} style=${{ width: w + 'px', height: h + 'px' }}>${children}</div>`;
+}
+
+function Logo({ size = 34 }) { // ic_launcher B (four app tiles, the sea over the bottom row, a clownfish), as in ui.js AppIcon
+  const fish = 'M21,12c-2.4,-3.9 -6.3,-5.4 -10,-4.2c-1.7,0.6 -3.2,1.8 -4.4,3.2L3,8.3v7.4l3.6,-2.7c1.2,1.4 2.7,2.6 4.4,3.2c3.7,1.2 7.6,-0.3 10,-4.2z';
+  const wave = 'M0,55C12,50 24,50 36,54.5S60,59.5 72,54S96,50 108,54';
+  return html`<svg viewBox="18 18 72 72" width=${size} height=${size} style=${{ borderRadius: size * 0.3 + 'px', flex: 'none', display: 'block' }} aria-hidden="true">
+    <defs>
+      <linearGradient id="lg-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14303F" /><stop offset="1" stop-color="#0B1419" /></linearGradient>
+      <linearGradient id="lg-sea" x1="0" y1="50" x2="0" y2="108" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5ED6E0" stop-opacity=".9" /><stop offset="1" stop-color="#0E6E93" stop-opacity=".97" /></linearGradient>
+      <clipPath id="lg-fish"><path d=${fish} /></clipPath>
+    </defs>
+    <rect width="108" height="108" fill="url(#lg-bg)" />
+    <rect x="35" y="33" width="17" height="17" rx="4.6" fill="#FF8A6B" /><rect x="56" y="33" width="17" height="17" rx="4.6" fill="#9B87F5" />
+    <rect x="35" y="54" width="17" height="17" rx="4.6" fill="#FFC857" /><rect x="56" y="54" width="17" height="17" rx="4.6" fill="#5FD3A0" />
+    <path d=${wave + 'V108H0Z'} fill="url(#lg-sea)" /><path d=${wave} fill="none" stroke="#fff" stroke-width="1.6" />
+    <g transform="translate(41.8 68.8) scale(0.85)"><path fill="#FF7B1C" d=${fish} /><g clip-path="url(#lg-fish)"><path fill="#fff" d="M11.4,6h3.4v12h-3.4z" /></g><circle cx="16.8" cy="11.3" r="1.3" fill="#14213D" /></g>
+  </svg>`;
+}
+const NAMES = { loop: 'Loop', pictura: 'Pictura', chatter: 'Chatter', headline: 'Headline' }; // fictional apps only (Play IP rules)
+const AppIcon = ({ app, size = 56 }) => html`<div style=${{ width: size + 'px', height: size + 'px', borderRadius: size * 0.3 + 'px', background: ICONS[app].bg, flex: 'none' }}>
+  <svg viewBox="0 0 48 48" width="100%" height="100%" aria-hidden="true">${ICONS[app].glyph}</svg></div>`;
+const Icon = ({ d, size = 26 }) => html`<svg width=${size} height=${size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d=${d} /></svg>`;
+const HEART = 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', BUBBLE = 'M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z', SEND = 'M21 3L10 14M21 3l-7 18-4-7-7-4z';
+const PlayIcon = html`<svg width="18" height="20" viewBox="0 0 18 20" aria-hidden="true"><path d="M2 1.6v16.8c0 .9 1 1.4 1.7.9l13.6-8.4a1 1 0 0 0 0-1.8L3.7.7C3 .2 2 .7 2 1.6z" fill="currentColor" /></svg>`;
+const TINTS = ['#E8A33D', '#3FA796', '#7C6BD6', '#D9617A', '#4F8FD8', '#8A9B3E'];
+
+function Clay({ href, onClick, tone = 'blue', small, icon, className = '', children }) {
+  const ref = useRef(null), [pops, setPops] = useState([]);
+  const mx = useMotionValue(0), my = useMotionValue(0);
+  const x = useSpring(mx, { stiffness: 260, damping: 17, mass: 0.6 }), y = useSpring(my, { stiffness: 260, damping: 17, mass: 0.6 });
+  const move = e => { // a little magnetic pull toward the pointer
+    if (e.pointerType !== 'mouse' || REDUCE) return;
+    const r = ref.current.getBoundingClientRect();
+    mx.set((e.clientX - r.left - r.width / 2) * 0.22); my.set((e.clientY - r.top - r.height / 2) * 0.32);
+  };
+  const down = e => { // bubbles escape from where the finger lands
+    if (REDUCE) return;
+    const r = ref.current.getBoundingClientRect(), ox = e.clientX - r.left, oy = e.clientY - r.top;
+    const add = Array.from({ length: 10 }, () => ({ id: Math.random(), x: ox, y: oy, dx: (Math.random() - 0.5) * 130, dy: 50 + Math.random() * 90, s: 5 + Math.random() * 10 }));
+    setPops(v => [...v, ...add].slice(-40));
+  };
+  const Tag = href ? motion.a : motion.button;
+  const ext = href && href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {};
+  return html`<${Tag} ref=${ref} href=${href} onClick=${onClick} type=${href ? undefined : 'button'} ...${ext}
+      className=${`clay clay-${tone} ${small ? 'clay-sm' : ''} ${className}`} style=${{ x, y }}
+      onPointerMove=${move} onPointerLeave=${() => { mx.set(0); my.set(0); }} onPointerDown=${down}
+      whileHover=${REDUCE ? undefined : { scale: 1.045 }} whileTap=${REDUCE ? undefined : { scaleX: 1.09, scaleY: 0.86 }}
+      transition=${{ type: 'spring', stiffness: 520, damping: 12, mass: 0.7 }}>
+    ${icon}<span>${children}</span>
+    ${pops.map(b => html`<${motion.i} key=${b.id} className="pop" aria-hidden="true"
+      style=${{ width: b.s + 'px', height: b.s + 'px', left: b.x - b.s / 2 + 'px', top: b.y - b.s / 2 + 'px' }}
+      initial=${{ x: 0, y: 0, scale: 0.2, opacity: 1 }} animate=${{ x: b.dx, y: -b.dy, scale: 1, opacity: 0 }}
+      transition=${{ duration: 0.9, ease: [0.15, 0.7, 0.3, 1] }}
+      onAnimationComplete=${() => setPops(v => v.filter(q => q !== b))} />`)}
+  <//>`;
+}
+
+function FishArt({ kind, len = 120, w = 170, h = 120, flip = false }) {
+  const r = useRef(null);
+  useEffect(() => {
+    const c = r.current, d = Math.min(devicePixelRatio || 1, 2), x = c.getContext('2d');
+    c.width = w * d; c.height = h * d; x.scale(d, d);
+    SeaPaint.drawFish(x, { kind, x: w / 2, y: h / 2, len, flip });
+  }, []);
+  return html`<canvas ref=${r} style=${{ width: w + 'px', height: h + 'px' }} aria-hidden="true"></canvas>`;
+}
+function ClockArt({ w = 150, text = '03:27' }) {
+  const r = useRef(null), h = Math.ceil((w * 207) / 320) + 16;
+  useEffect(() => {
+    const c = r.current, d = Math.min(devicePixelRatio || 1, 2), x = c.getContext('2d');
+    c.width = (w + 16) * d; c.height = h * d; x.scale(d, d);
+    SeaPaint.drawClock(x, 8, 8, w, text);
+  }, []);
+  return html`<canvas ref=${r} style=${{ width: w + 16 + 'px', height: h + 'px' }} aria-hidden="true"></canvas>`;
+}
+
+// ---- the opener: scroll is time spent in Loop (limit 10 min, flood at 90%), mapped like Limits.kt ----
+const lerp = (p, p0, p1, v0, v1) => v0 + ((Math.min(Math.max(p, p0), p1) - p0) / (p1 - p0)) * (v1 - v0);
+function storyAt(p) {
+  const used = p < 0.25 ? lerp(p, 0, 0.25, 420, 480) : p < 0.4 ? lerp(p, 0.25, 0.4, 480, 530) : p < 0.5 ? lerp(p, 0.4, 0.5, 530, 540) : lerp(p, 0.5, 0.8, 540, 600);
+  const left = p >= 0.8, flooding = !left && p >= 0.5, under = Math.max(0, used - 540);
+  let banner = null;
+  if (!left && used >= 480 && used < 530) banner = { key: 'warn', text: 'Loop floods in 1 min' };
+  else if (!left && used >= 530 && used < 540) banner = { key: 'count', text: `Flood in ${Math.max(1, Math.ceil(540 - used))}` };
+  else if (flooding && under < 4) banner = { key: 'count', text: 'Flood!' };
+  return {
+    used, left, flooding, under, banner,
+    step: p < 0.05 ? -1 : p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.8 ? 2 : 3,
+    level: flooding ? 0.6 + 0.4 * Math.min(1, under / 60) : 0, // Flood.SURGE, then full over 10% of the limit
+    fish: flooding ? Math.min(10, 3 + Math.floor(under / 10)) : 0, // 3, +1 per 10 s
+    clock: flooding ? `${pad(under / 60)}:${pad(under % 60)}` : null,
+    talk: flooding && under >= 20 && under < 46, // FishTalk: first bubble 20 s in
+    ring: flooding && under >= 28, // LifeRing.due: 28 s in
+    scroll: Math.min(p, 0.8) * 760,
+  };
+}
+const STEPS = [
+  ['A limit for', 'each app', 'Per visit or per day. At 90%, the sea starts rising.'],
+  ['Fair warning', 'first.', 'When you open it, at one minute, then a 10‑second countdown.'],
+  ['Time’s up?', 'The sea floods in.', 'Taps work by default. More fish arrive the longer you stay.'],
+  ['Leave, and', 'it drains.', 'Come back within 10 minutes and SeaThrough asks first: not now, or open it flooded.'],
+];
+const swap = { initial: { y: 30, opacity: 0 }, animate: { y: 0, opacity: 1 }, exit: { y: -26, opacity: 0 }, transition: { duration: 0.42, ease: [0.2, 0.7, 0.2, 1] } };
+
+const Hero = memo(function Hero() {
+  const h = useRef(null);
+  useLayoutEffect(() => {
+    if (REDUCE) return;
+    let split = null, tw = null, live = true;
+    document.fonts.ready.then(() => {
+      if (!live) return;
+      split = SplitText.create(h.current.children, { type: 'words,lines', mask: 'lines' });
+      tw = gsap.from(split.words, { yPercent: 115, rotate: 3, duration: 1.15, ease: 'expo.out', stagger: 0.07, delay: 0.05 });
+    });
+    return () => { live = false; tw && tw.kill(); split && split.revert(); };
+  }, []);
+  return html`<div className="hero">
+    <h1 ref=${h} className="h1"><span>App blocker.</span><span className="l2">No forced lockout.</span></h1>
+    <p className="lead">Set limits for the apps you overuse. When time is up, the sea floods in over the app. Your taps still work, and leaving drains it.</p>
+    <div className="ctas">
+      <${Clay} href=${PLAY} icon=${PlayIcon}>Get it on Google Play<//>
+      <${Clay} tone="light" onClick=${seeFlood} className="hide-sm">See it flood<//>
+    </div>
+    <p className="fine">For Android · 2 apps free · No account</p>
+    <div className="hint"><i></i>Scroll to spend time in Loop</div>
+  </div>`;
+});
+
+const Feed = memo(() => html`<div className="feed">
+  <div className="feed-head"><b>Loop</b><span><${Icon} d=${HEART} /><${Icon} d=${SEND} /></span></div>
+  <div className="stories">${['Your story', 'maya', 'noodle', 'ridge', 'tide'].map((s, i) => html`<div key=${s} className="st">
+    <i className=${'av' + (i ? ' ringed' : '')} style=${{ '--c': TINTS[i] }}>${s[0].toUpperCase()}</i><span>${s}</span></div>`)}</div>
+  ${[['maya.walks', 'sunset', 'Chasing the last light up the ridge.', '1,284'], ['tidewalk', 'beach', 'Low tide, empty beach, nowhere to be.', '748'],
+    ['early.air', 'balloons', 'Up with the sun. Worth the alarm.', '2,310']].map(([who, scene, cap, likes], i) => html`<div key=${scene} className="post">
+    <div className="post-head"><i className="av" style=${{ '--c': TINTS[i + 1] }}>${who[0].toUpperCase()}</i><div><b>${who}</b><span>${i + 2}h</span></div></div>
+    <${PostArt} scene=${scene} />
+    <div className="post-act"><${Icon} d=${HEART} /><${Icon} d=${BUBBLE} /><${Icon} d=${SEND} /></div>
+    <div className="post-cap"><b>${likes} likes</b><br /><b>${who}</b> ${cap}</div>
+  </div>`)}
+</div>`);
+
+const Home = memo(() => html`<div className="homescr">
+  <div className="h-clock">9:51</div>
+  <div className="h-grid">${['loop', 'pictura', 'chatter', 'headline'].map(a => html`<div key=${a}><${AppIcon} app=${a} size=${60} /><span>${NAMES[a]}</span></div>`)}</div>
+</div>`);
+
+function Phone({ m, pane }) {
+  return html`<div className="phone" role="img" aria-label="A phone showing Loop, a feed app. As time runs out, a warning appears, then the sea floods in over the app with fish, and drains when you leave.">
+    <div className="screen">
+      <${Scaled}>
+        <div style=${{ position: 'absolute', inset: 0, transform: `translateY(${-m.scroll}px)` }}><${Feed} /></div>
+        <${motion.div} className="home" initial=${false} animate=${{ opacity: m.left ? 1 : 0 }} transition=${{ duration: 0.5 }}><${Home} /><//>
+      <//>
+      <${SeaPane} state=${pane} seed=${5} />
+      <${Scaled} className="over">
+        <div className=${'sbar' + (m.left ? ' light' : '')}><span>9:4${m.left ? 9 : 1}</span><span>
+          <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true"><path d="M1 10h2V7H1zm4 0h2V5H5zm4 0h2V3H9zm4 0h2V1h-2z" fill="currentColor" /></svg>
+          <svg width="24" height="12" viewBox="0 0 24 12" aria-hidden="true"><rect x=".5" y=".5" width="20" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5" /><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor" /><path d="M22 4v4" stroke="currentColor" stroke-width="1.5" opacity=".5" /></svg>
+        </span></div>
+        <${AnimatePresence}>
+          ${m.banner && html`<${motion.div} key=${m.banner.key} className="hu" initial=${{ y: -130 }} animate=${{ y: 0 }} exit=${{ y: -150 }} transition=${{ type: 'spring', stiffness: 360, damping: 30 }}>
+            <div className="hu-top"><${Logo} size=${18} /><span>SeaThrough</span><span style=${{ opacity: 0.6 }}>· now</span></div>
+            <div className="hu-title">${m.banner.text}</div>
+          <//>`}
+        <//>
+        <${AnimatePresence}>
+          ${m.talk && html`<${motion.div} key="talk" className="talk" initial=${{ scale: 0.6, opacity: 0 }} animate=${{ scale: 1, opacity: 1 }} exit=${{ scale: 0.8, opacity: 0 }}
+            transition=${{ type: 'spring', stiffness: 420, damping: 22 }} style=${{ originX: 0.2, originY: 1 }}>Blub blub. At this rate, 31 days a year in Loop.<//>`}
+        <//>
+        ${m.ring && html`<div className="ring-float"><i className="ring"></i></div>`}
+      <//>
+    </div>
+  </div>`;
+}
+
+function Story() {
+  const sec = useRef(null), pane = useRef({ target: 0, fish: 0, leave: false, clock: null });
+  const [p, setP] = useState(0);
+  useLayoutEffect(() => {
+    const st = ScrollTrigger.create({
+      trigger: sec.current, start: 'top top', end: () => '+=' + Math.round(innerHeight * 2.6), pin: true, scrub: true,
+      onUpdate: s => setP(Math.round(s.progress * 1000) / 1000), onRefresh: s => { S.pinStart = s.start; S.pinEnd = s.end; },
+    });
+    S.pinStart = st.start; S.pinEnd = st.end;
+    return () => st.kill();
+  }, []);
+  const m = storyAt(p), step = STEPS[m.step];
+  Object.assign(pane.current, { target: m.level, fish: m.fish, leave: m.left, clock: m.clock });
+  const status = m.left ? 'You left · draining' : m.flooding ? `Under water ${mmss(m.under)}` : m.used >= 480 ? 'Warned' : 'Dry';
+  return html`<section ref=${sec} className="story" id="top">
+    <div className="wrap story-grid">
+      <div className="copy">
+        <${AnimatePresence} mode="wait" initial=${false}>
+          ${m.step < 0 ? html`<${motion.div} key="hero" ...${swap}><${Hero} /><//>` : html`<${motion.div} key=${'s' + m.step} className="step" ...${swap}>
+            <div className="label" style=${{ color: 'var(--teal)' }}>${m.step + 1} of 4</div>
+            <h2 className="h2">${step[0]}<br /><span className="l2">${step[1]}</span></h2>
+            <p className="lead">${step[2]}</p>
+          <//>`}
+        <//>
+        ${m.step >= 0 && html`<div className="meter" aria-label=${`Time in Loop: ${mmss(m.used)} of 10:00`}>
+          <div className="meter-row"><span>Loop · this visit</span><span className="t">${mmss(m.used)} / 10:00</span></div>
+          <div className="track"><i className=${m.flooding ? 'hot' : ''} style=${{ width: `calc(${(m.used / 600) * 100}% - 6px)` }}></i><b style=${{ left: '90%' }}></b></div>
+          <div className="meter-row"><span>The sea comes in at 9:00</span><span>${status}</span></div>
+        </div>`}
+      </div>
+      <${Phone} m=${m} pane=${pane} />
+    </div>
+  </section>`;
+}
+
+// ---- the deep ----
+const Head = ({ a, b, lead }) => html`<${motion.div} className="head" initial=${{ y: 46 }} whileInView=${{ y: 0 }} viewport=${{ once: true, margin: '-8%' }}
+  transition=${{ type: 'spring', stiffness: 120, damping: 20 }}>
+  <h2 className="h2">${a}<br /><span className="l2">${b}</span></h2>${lead && html`<p className="lead">${lead}</p>`}
+<//>`;
+const rise = i => ({ initial: { y: 56 }, whileInView: { y: 0 }, viewport: { once: true, margin: '-6%' }, transition: { type: 'spring', stiffness: 110, damping: 18, delay: i * 0.07 } });
+const lift = REDUCE ? {} : { whileHover: { y: -8, scale: 1.012 }, transition: { type: 'spring', stiffness: 300, damping: 18 } };
+
+function Versus() {
+  const still = useRef({ target: 0.64, fish: 4, leave: false, clock: null });
+  return html`<section className="sec deep" id="how"><div className="wrap">
+    <${Head} a="Not a lockout." b="A rising sea." lead="Taps work by default, a life ring takes you home, and leaving drains it." />
+    <div className="vs">
+      <${motion.div} className="card vs-card" ...${rise(0)}>
+        <div className="label" style=${{ color: '#66737A' }}>A hard lockout</div>
+        <div className="shot locked"><${Scaled} w=${360} h=${441}><${PostArt} scene="city" /><//>
+          <div className="wall"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+            <b>Time limit reached</b><span>This app is paused until tomorrow.</span></div></div>
+        <ul className="ticks no"><li>Your taps stop working</li><li>You bargain for more time, or switch it off</li></ul>
+      <//>
+      <${motion.div} className="card vs-card" ...${rise(1)}>
+        <div className="label" style=${{ color: 'var(--teal)' }}>SeaThrough</div>
+        <div className="shot"><${Scaled} w=${360} h=${441}><${PostArt} scene="city" /><//><${SeaPane} state=${still} seed=${9} fishN=${4} top=${10} /></div>
+        <ul className="ticks"><li>Your taps still reach the app</li><li>Home and Back always work</li><li>Leave, and the water drains</li></ul>
+      <//>
+    </div>
+  </div></section>`;
+}
+
+const FEATS = [
+  ['Free', 'Talking fish', 'Fish speak up with your own numbers: days a year, hours this week. One line per flood for free, the whole school with Pro.',
+    () => html`<${FishArt} kind="clownfish" len=${96} w=${150} h=${100} /><div className="bubble">Blub blub. At this rate, 31 days a year in Loop.</div>`],
+  ['Every flood', 'Golden fish', 'A golden fish swims through every flood. With Pro, one tap on it takes you to an app you chose instead.',
+    () => html`<div className="medal"><${AppIcon} app="pictura" size=${54} /></div>`],
+  ['Free', 'Life ring', 'Tap the life ring and you land on your home screen. Leaving drains the sea.', () => html`<i className="ring" style=${{ transform: 'scale(1.35) rotate(-14deg)' }}></i>`],
+  ['Free', 'The gate', 'Reopen a flooded app and SeaThrough asks first, with the wait left on screen: not now, or open it flooded.',
+    () => html`<div className="gate"><small>Loop is still under water</small><b>8 min</b><div><span>Not now</span><span>Open Loop flooded</span></div></div>`],
+  ['Free', 'Sunken clock', 'A clock half buried in the sand counts how long you have been under water, even across short trips away.', () => html`<${ClockArt} w=${150} />`],
+  ['Pro', 'Riptide', 'Stricter, when you choose. Riptide takes your taps on apps you pick. “Let me in” waits 30 s, then lets you in for 5 minutes, 3 times a day.',
+    () => html`<div className="lmi"><span>Let me in</span><small>30 s</small></div>`],
+];
+function Features() {
+  return html`<section className="sec deep" id="features"><div className="wrap">
+    <${Head} a="Everything in the water" b="has a job." lead="Each part of the flood nudges you out of the app, and none of it traps you in." />
+    <div className="grid3">${FEATS.map(([tag, title, body, viz], i) => html`<${motion.article} key=${title} className="card feat" ...${rise(i % 3)} ...${lift}>
+      <div className="viz">${viz()}</div>
+      <span className=${'tag' + (tag === 'Pro' ? ' pro' : '')}>${tag}</span>
+      <h3 className="h3">${title}</h3><p>${body}</p>
+    <//>`)}</div>
+  </div></section>`;
+}
+
+function Science() {
+  const rows = [
+    ['37%', 'fewer attempts to open a target app over six weeks, with a short pause before it opened', 'Field study · PNAS 2023 · 280 people · no control group'],
+    ['20+ min', 'less phone time a day once the screen turned grey', 'Two studies · 2020 and 2024'],
+    ['More frustration', 'Hard lockouts cut more use than warnings, but frustrated people more', 'Field study · IMWUT 2019 · 36 people'],
+  ];
+  return html`<section className="sec deep" id="science"><div className="wrap">
+    <${Head} a="Friction helped." b="Walls frustrated." lead="Studies of other screen-time tools, not of SeaThrough." />
+    <div className="stats">${rows.map(([n, text, src], i) => html`<${motion.div} key=${n} className="stat" ...${rise(i)}>
+      <div className=${'num' + (n.length > 8 ? ' word' : '')}>${n}</div><p>${text}</p><small>${src}</small>
+    <//>`)}</div>
+  </div></section>`;
+}
+
+function Privacy() {
+  const facts = [
+    ['On the phone', 'Usage access tells SeaThrough which app is open, every 2 seconds. That record stays on your phone.'],
+    ['No account', 'Nothing to sign up for. No ads, ever, and no Accessibility service.'],
+    ['Google Play only', 'The only internet use is Google Play Billing, for Pro.'],
+  ];
+  return html`<section className="sec deep" id="privacy"><div className="wrap">
+    <${Head} a="Your usage stays" b="on your phone" lead="No account. No ads. Purchases go through Google Play." />
+    <div className="facts">${facts.map(([t, b], i) => html`<${motion.div} key=${t} className="card" ...${rise(i)}><h3 className="h3">${t}</h3><p>${b}</p><//>`)}</div>
+    <p className="lead" style=${{ marginTop: '28px' }}><a href=${PRIVACY} target="_blank" rel="noopener">Read the privacy policy</a></p>
+  </div></section>`;
+}
+
+function Pricing() {
+  return html`<section className="sec deep" id="pricing"><div className="wrap">
+    <${Head} a="Two apps free." b="Every app with Pro." lead="Pro starts with a 7-day free trial on the yearly plan. Prices are in euros; Google Play shows yours." />
+    <div className="plans">
+      <${motion.div} className="card plan" ...${rise(0)}>
+        <span className="tag">Free</span>
+        <div className="price"><span className="num">€0</span><span className="sub">for good</span></div>
+        <ul className="ticks"><li>2 apps flood</li><li>Warnings and the 10-second countdown</li><li>The gate, the life ring and the sunken clock</li><li>One talking-fish line per flood</li><li>The golden fish swims by</li></ul>
+      <//>
+      <${motion.div} className="card plan pro" ...${rise(1)}>
+        <span className="tag" style=${{ background: 'rgb(255 255 255 / 0.2)', color: '#fff' }}>Pro</span>
+        <div className="price"><span className="num">€29.99</span><span className="sub">a year, after 7 days free</span></div>
+        <p className="sub">or €6.49 a month, or €39.99 once</p>
+        <ul className="ticks"><li>Every app you limit</li><li>The whole talking school</li><li>The golden fish takes you to apps you pick</li><li>Riptide, for the apps you choose</li><li>Thicker water the longer you stay</li><li>Time back, and a reef that grows on dry days</li></ul>
+      <//>
+    </div>
+  </div></section>`;
+}
+
+function Final() {
+  return html`<section className="final deep"><div className="wrap center">
+    <h2 className="h2" style=${{ fontSize: 'clamp(48px, 8vw, 120px)' }}>Overstay.<br /><span className="l2">The sea comes in.</span></h2>
+    <p className="lead">Free for 2 apps. Pro adds every app, Riptide and the rest of the school.</p>
+    <${Clay} href=${PLAY} icon=${PlayIcon}>Get it on Google Play<//>
+  </div>
+  <div className="wrap"><footer className="foot">
+    <span>SeaThrough by Mindylabs, Berlin · Android only</span>
+    <nav><a href=${PRIVACY} target="_blank" rel="noopener">Privacy policy</a><span>Google Play is a trademark of Google LLC.</span></nav>
+  </footer></div></section>`;
+}
+
+function Nav() {
+  return html`<header className="nav"><div className="wrap"><div className="bar">
+    <a className="brand" href="#top"><${Logo} size=${36} /><span>SeaThrough</span></a>
+    <nav className="links" aria-label="Sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a></nav>
+    <span className="grow"></span>
+    <${Clay} href=${PLAY} small=${true}>Get the app<//>
+  </div></div></header>`;
+}
+
+function App() {
+  useEffect(() => {
+    startOcean();
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }, []);
+  return html`<${React.Fragment}>
+    <${Nav} />
+    <main><${Story} /><${Versus} /><${Features} /><${Science} /><${Privacy} /><${Pricing} /><${Final} /></main>
+    <div className="gauge" id="gauge" aria-hidden="true"><span className="label">Depth</span><b>0 m</b></div>
+  <//>`;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+</script>
+</body>
+</html>
