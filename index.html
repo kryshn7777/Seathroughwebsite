@@ -1140,23 +1140,47 @@ async function startLife3D() {
 }
 
 // ---- the screen leaks: drops on the glass slide, stall, leave trails and merge; the flooded phone spills over ----
-function dropSprite() {
-  const R = 48, m = R + 6, c = document.createElement('canvas'), x = c.getContext('2d');
-  c.width = c.height = 2 * m;
-  x.fillStyle = 'rgba(0, 28, 44, 0.16)'; x.beginPath(); x.ellipse(m + R * 0.08, m + R * 0.18, R * 0.97, R * 0.92, 0, 0, 7); x.fill();
-  const g = x.createRadialGradient(m - R * 0.3, m - R * 0.35, R * 0.05, m, m, R);
-  g.addColorStop(0, 'rgba(255,255,255,0.6)'); g.addColorStop(0.42, 'rgba(225,245,250,0.16)'); g.addColorStop(0.84, 'rgba(160,210,225,0.1)'); g.addColorStop(1, 'rgba(8,40,60,0.42)');
-  x.fillStyle = g; x.beginPath(); x.arc(m, m, R, 0, 7); x.fill();
-  x.strokeStyle = 'rgba(255,255,255,0.72)'; x.lineWidth = R * 0.1; x.lineCap = 'round'; x.beginPath(); x.arc(m, m, R * 0.74, Math.PI * 0.2, Math.PI * 0.8); x.stroke();
-  x.fillStyle = 'rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(m - R * 0.36, m - R * 0.42, R * 0.2, R * 0.12, -0.6, 0, 7); x.fill();
-  return Object.assign(c, { R, m });
+function dropSprites() { // four clear, slightly irregular drops: lens rim, light focused low, flipped dark band up top, sharp glints
+  return Array.from({ length: 4 }, (_, n) => {
+    const R = 64, m = R + 10, c = document.createElement('canvas'), x = c.getContext('2d'), a = n * 1.7, b = n * 2.9;
+    c.width = c.height = 2 * m;
+    const shape = new Path2D();
+    for (let i = 0; i <= 56; i++) {
+      const t = (i / 56) * Math.PI * 2, s = Math.sin(t);
+      const r = R * (1 + 0.035 * Math.sin(3 * t + a) + 0.025 * Math.sin(5 * t + b) + (s > 0 ? 0.05 : 0.02) * s); // gravity: fuller at the bottom
+      i ? shape.lineTo(m + Math.cos(t) * r, m + s * r * 0.96) : shape.moveTo(m + Math.cos(t) * r, m + s * r * 0.96);
+    }
+    shape.closePath();
+    x.save(); x.filter = 'blur(3px)'; x.translate(R * 0.06, R * 0.14); x.fillStyle = 'rgba(0, 25, 40, 0.09)'; x.fill(shape); x.restore(); // soft cast shadow
+    x.save(); x.clip(shape);
+    const body = x.createRadialGradient(m - R * 0.15, m - R * 0.2, 0, m, m, R * 1.05); // nearly clear, cooler toward the edge
+    body.addColorStop(0, 'rgba(255,255,255,0.02)'); body.addColorStop(0.6, 'rgba(210,236,244,0.05)'); body.addColorStop(0.87, 'rgba(120,170,190,0.11)'); body.addColorStop(1, 'rgba(8,32,48,0.4)');
+    x.fillStyle = body; x.fillRect(0, 0, c.width, c.height);
+    const glow = x.createRadialGradient(m + R * 0.1, m + R * 0.55, 0, m + R * 0.1, m + R * 0.55, R * 0.7); // light gathered in the lower half
+    glow.addColorStop(0, 'rgba(255,255,255,0.3)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = glow; x.fillRect(0, 0, c.width, c.height);
+    const top = x.createLinearGradient(0, m - R, 0, m - R * 0.15); // a lens flips what is above it: darker along the top
+    top.addColorStop(0, 'rgba(6,28,44,0.26)'); top.addColorStop(1, 'rgba(6,28,44,0)');
+    x.fillStyle = top; x.fillRect(0, 0, c.width, m);
+    const cr = x.createLinearGradient(m - R, 0, m + R, 0); // the bright crescent
+    cr.addColorStop(0, 'rgba(255,255,255,0)'); cr.addColorStop(0.5, 'rgba(255,255,255,0.8)'); cr.addColorStop(1, 'rgba(255,255,255,0)');
+    x.lineWidth = R * 0.08; x.lineCap = 'round'; x.strokeStyle = cr;
+    x.beginPath(); x.arc(m, m - R * 0.06, R * 0.86, Math.PI * 0.18, Math.PI * 0.82); x.stroke();
+    x.fillStyle = 'rgba(255,255,255,0.16)'; x.beginPath(); x.ellipse(m - R * 0.05, m - R * 0.56, R * 0.44, R * 0.13, -0.15, 0, 7); x.fill(); // window sheen
+    x.restore();
+    x.lineWidth = R * 0.03; x.strokeStyle = 'rgba(10,40,56,0.32)'; x.stroke(shape); // thin rim
+    x.fillStyle = 'rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(m - R * 0.38, m - R * 0.42, R * 0.15, R * 0.085, -0.7, 0, 7); x.fill(); // sun glint
+    x.fillStyle = 'rgba(255,255,255,0.55)'; x.beginPath(); x.arc(m - R * 0.13, m - R * 0.52, R * 0.04, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,255,255,0.65)'; x.beginPath(); x.arc(m + R * 0.42, m + R * 0.36, R * 0.045, 0, 7); x.fill();
+    return Object.assign(c, { R, m });
+  });
 }
 class Glass {
-  constructor(canvas) { this.c = canvas; this.x = canvas.getContext('2d'); this.d = []; this.drips = []; this.spr = dropSprite(); this.leak = 0; this.spill = 0; this.drawn = false; }
-  add(x, y, r, grow = 0) { if (this.d.length < 280) this.d.push({ x, y, r, grow, vy: 0, stick: R0() * 1.5, t: 0 }); }
+  constructor(canvas) { this.c = canvas; this.x = canvas.getContext('2d'); this.d = []; this.drips = []; this.spr = dropSprites(); this.leak = 0; this.spill = 0; this.drawn = false; }
+  add(x, y, r, grow = 0) { if (this.d.length < 280) this.d.push({ x, y, r, grow, vy: 0, stick: R0() * 1.5, t: 0, v: Math.floor(R0() * 4), ty: null }); }
   splash(n, a) { for (let i = 0; i < n; i++) this.add(a.x + R0() * a.w, a.y + R0() * a.h, 2 + R0() ** 2.6 * 17); }
   step(dt, vw, vh, deep) {
-    if (deep && (this.leak -= dt) <= 0) { this.add(R0() * vw, -2, 3, 8 + R0() * 6); this.leak = 1.2 + R0() * 3; } // a seam at the top keeps seeping
+    if (deep && (this.leak -= dt) <= 0) { this.add(R0() * vw, vh * (0.45 + R0() * 0.4), 2, 7 + R0() * 7); this.leak = 1.2 + R0() * 3; } // drops keep beading on the lower glass
     const ph = S.phone;
     if (ph && S.phoneLevel > 0.9) { // the flooded phone spills over its edges
       const r = ph.getBoundingClientRect();
@@ -1176,6 +1200,7 @@ class Glass {
           if (R0() < dt * 1.4) { p.stick = R0() * 0.6; p.vy *= 0.2; }
         }
         p.y += p.vy * dt; p.x += Math.sin(p.y * 0.05 + p.r) * dt * 6;
+        if (p.vy > 20) p.ty = Math.max(p.ty ?? p.y, p.y - 110); else if (p.ty !== null && (p.ty += dt * 120) > p.y) p.ty = null; // the wet streak behind a running drop
         if (p.vy > 20 && R0() < dt * 10) { this.add(p.x + (R0() - 0.5) * p.r * 0.4, p.y - p.r * 1.1, 1 + R0() * p.r * 0.28); p.r *= 0.985; }
         if (p.vy > 5) moving.push(p);
       }
@@ -1198,14 +1223,22 @@ class Glass {
     if (c.width !== Math.round(vw * res) || c.height !== Math.round(vh * res)) { c.width = Math.round(vw * res); c.height = Math.round(vh * res); }
     if (!this.d.length && !this.drips.length && !this.drawn) return;
     x.setTransform(res, 0, 0, res, 0, 0); x.clearRect(0, 0, vw, vh);
+    for (const p of this.d) { // streaks first: a clear film with faint edges, fading toward where the drop started
+      if (p.ty === null || p.y - p.ty < 6) continue;
+      const w = p.r * 0.55, g = x.createLinearGradient(0, p.ty, 0, p.y);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(225,245,250,0.1)');
+      x.fillStyle = g; x.fillRect(p.x - w, p.ty, w * 2, p.y - p.ty);
+      x.strokeStyle = 'rgba(10,40,56,0.05)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(p.x - w, p.ty); x.lineTo(p.x - w, p.y); x.moveTo(p.x + w, p.ty); x.lineTo(p.x + w, p.y); x.stroke();
+    }
     for (const p of this.d) {
-      const sy = 1 + Math.min(0.7, p.vy / 260), sx = 1 / Math.sqrt(sy), k = p.r / s.R;
-      x.globalAlpha = p.r > 6.5 ? 1 : Math.max(0, Math.min(1, (9 + p.r * 2 - p.t) / 2));
-      x.drawImage(s, p.x - s.m * k * sx, p.y - s.m * k * sy - (sy - 1) * p.r * 0.6, s.width * k * sx, s.height * k * sy);
+      const sp = s[p.v], sy = 1 + Math.min(0.7, p.vy / 260), sx = 1 / Math.sqrt(sy), k = p.r / sp.R;
+      x.globalAlpha = 0.92 * (p.r > 6.5 ? 1 : Math.max(0, Math.min(1, (9 + p.r * 2 - p.t) / 2)));
+      x.drawImage(sp, p.x - sp.m * k * sx, p.y - sp.m * k * sy - (sy - 1) * p.r * 0.6, sp.width * k * sx, sp.height * k * sy);
     }
     x.globalAlpha = 1;
     for (const q of this.drips) {
-      const st = 1 + Math.hypot(q.vx, q.vy) / 420, k = q.r / s.R;
+      const s = this.spr[0], st = 1 + Math.hypot(q.vx, q.vy) / 420, k = q.r / s.R;
       x.save(); x.translate(q.x, q.y); x.rotate(Math.atan2(q.vy, q.vx));
       x.drawImage(s, -s.m * k * st, -s.m * k, s.width * k * st, s.height * k); x.restore();
     }
@@ -1246,7 +1279,7 @@ function startOcean() {
     if (sea) sea.draw({ t: REDUCE ? 6 : time, surf, depth, scroll: y, alpha: 1, amp: 1.25, mouse: S.mouse, rip: S.rip });
     if (gauge) { gauge.style.opacity = y > gone - vh * 0.2 ? 1 : 0; gauge.firstChild.nextSibling.textContent = `${Math.round(deepness * 38)} m`; }
     const under = surf < -20;
-    if (glass && under && !wasUnder && y > pe) glass.splash(120, { x: 0, y: -30, w: vw, h: vh * 0.65 }); // the page goes under: a wave hits the glass
+    if (glass && under && !wasUnder && y > pe) glass.splash(120, { x: 0, y: vh * 0.3, w: vw, h: vh * 0.65 }); // the page goes under: a wave hits the glass
     wasUnder = under;
     const res = Math.min(devicePixelRatio || 1, 2);
     if (lc.width !== Math.round(vw * res) || lc.height !== Math.round(vh * res)) { lc.width = Math.round(vw * res); lc.height = Math.round(vh * res); }
@@ -1508,7 +1541,7 @@ function Story() {
   const m = storyAt(p), step = STEPS[m.step], wasFlooding = useRef(false);
   Object.assign(pane.current, { target: m.level, fish: m.fish, leave: m.left, clock: m.clock });
   useEffect(() => { // "Flood!": the water hits the screen glass too
-    if (m.flooding && !wasFlooding.current) S.glass?.splash(90, { x: 0, y: -20, w: innerWidth, h: innerHeight * 0.75 });
+    if (m.flooding && !wasFlooding.current) S.glass?.splash(90, { x: 0, y: innerHeight * 0.35, w: innerWidth, h: innerHeight * 0.6 });
     wasFlooding.current = m.flooding;
   }, [m.flooding]);
   const status = m.left ? 'You left · draining' : m.flooding ? `Under water ${mmss(m.under)}` : m.used >= 480 ? 'Warned' : 'Dry';
